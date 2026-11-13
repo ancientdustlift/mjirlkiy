@@ -150,6 +150,7 @@ public final class Tectonics {
       final ServerWorld w;
       final BlockPos c;
       final int h;
+      final Volcanics.Plume plume = new Volcanics.Plume();
       int life = 240;
 
       Eruption(ServerWorld w, BlockPos c, int h) {
@@ -168,6 +169,16 @@ public final class Tectonics {
          Fx.particles(this.w, ParticleTypes.LAVA, x, y, z, 6, 1.0, 0.5, 1.0, 0.5);
          Fx.particles(this.w, ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, x, y + 2.0, z, 3, 1.5, 2.0, 1.5, 0.05);
          Fx.particles(this.w, ParticleTypes.LARGE_SMOKE, x, y + 4.0, z, 6, 2.0, 3.0, 2.0, 0.1);
+         this.plume.update(this.w, x, y + 1.0, z, Math.min(this.h * 0.45F, 1.0F + (240 - this.life) * 0.06F), 240 - this.life);
+         if (this.life % 10 == 0) {
+            boolean blast = this.life % 40 == 0;
+            if (blast) {
+               this.plume.puff();
+            }
+
+            Volcanics.bomb(this.w, x, y + 3.0, z, (r.nextDouble() - 0.5) * 0.9, 0.8 + r.nextDouble() * 0.6, (r.nextDouble() - 0.5) * 0.9, blast);
+         }
+
          if (this.life % 4 == 0) {
             BlockPos at = this.c.up(3);
             if (this.w.getBlockState(at).isAir()) {
@@ -196,6 +207,7 @@ public final class Tectonics {
          if (this.life > 0) {
             return false;
          } else {
+            this.plume.discard();
             int rad = (int)(this.h * 1.6);
             Mutable m = new Mutable();
 

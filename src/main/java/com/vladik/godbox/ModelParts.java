@@ -1113,7 +1113,10 @@ public final class ModelParts {
          still("timed", 4409, false)
       );
       props("blackhole", still("core", 4500, true), still("ring", 4501, true));
-      props("tornado", still("funnel", 4600, false), still("skirt", 4601, false));
+      props("tornado", still("funnel", 4600, false), still("skirt", 4601, false), still("debris", 4602, false));
+      props("wave", still("crest", 5000, false));
+      props("volcano", still("bomb", 5100, true), still("plume", 5101, false));
+      props("geyser", still("jet", 5200, false), still("cone", 5201, false));
       props("ship", still("ship", 4800, false));
    }
 

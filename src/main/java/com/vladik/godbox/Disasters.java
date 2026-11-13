@@ -9,6 +9,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -383,46 +385,20 @@ public final class Disasters {
    }
 
    public static final class Tornado implements Tasks.Task {
+      private static final int LIFE = 400;
+      private static final float HEIGHT = 26.0F;
+      // The funnel model is 3 blocks tall at scale 1 and is centred 1.5 blocks above its base.
+      private static final float FUNNEL_SCALE = HEIGHT / 3.0F;
       private final ServerWorld w;
       private double x;
       private double z;
       private double vx;
       private double vz;
-      private int life = 400;
+      private int life = LIFE;
       private ItemDisplayEntity funnel;
       private ItemDisplayEntity skirt;
-
-      // The funnel model is 3 blocks tall at scale 1 and is centred 1.5 blocks above its base.
-      private static final float FUNNEL_SCALE = 26.0F / 3.0F;
-
-      private void model(int gy) {
-         if (this.life == 400) {
-            this.funnel = Models.prop(this.w, "tornado", "funnel", this.x, gy, this.z);
-            this.skirt = Models.prop(this.w, "tornado", "skirt", this.x, gy, this.z);
-         }
-
-         double y = gy + 1.5 * FUNNEL_SCALE;
-         float turn = (400 - this.life) * 0.5F;
-         if (this.funnel != null) {
-            this.funnel.setPosition(this.x, y, this.z);
-            Models.pose(this.funnel, new Quaternionf().rotationY(turn), FUNNEL_SCALE);
-         }
-
-         if (this.skirt != null) {
-            this.skirt.setPosition(this.x, y, this.z);
-            Models.pose(this.skirt, new Quaternionf().rotationY(-turn * 1.6F), FUNNEL_SCALE);
-         }
-
-         if (this.life <= 1) {
-            if (this.funnel != null) {
-               this.funnel.discard();
-            }
-
-            if (this.skirt != null) {
-               this.skirt.discard();
-            }
-         }
-      }
+      private final ItemDisplayEntity[] debris = new ItemDisplayEntity[3];
+      private LivingEntity prey;
 
       public Tornado(ServerWorld w, double x, double z) {
          this.w = w;
@@ -430,21 +406,113 @@ public final class Disasters {
          this.z = z;
       }
 
+      private void model(int gy, int age) {
+         if (age == 0) {
+            this.funnel = Models.prop(this.w, "tornado", "funnel", this.x, gy, this.z);
+            this.skirt = Models.prop(this.w, "tornado", "skirt", this.x, gy, this.z);
+
+            for (int i = 0; i < this.debris.length; i++) {
+               this.debris[i] = Models.prop(this.w, "tornado", "debris", this.x, gy, this.z);
+            }
+         }
+
+         // Lean into the direction of travel, pivoting on the foot of the funnel.
+         Quaternionf lean = new Quaternionf().rotationX((float)(this.vz * 0.5)).rotateZ((float)(-this.vx * 0.5));
+         Vector3f mid = lean.transform(new Vector3f(0.0F, 1.5F * FUNNEL_SCALE, 0.0F));
+         float turn = age * 0.5F;
+         if (this.funnel != null) {
+            this.funnel.setPosition(this.x + mid.x, gy + mid.y, this.z + mid.z);
+            Models.pose(this.funnel, new Quaternionf(lean).rotateY(turn), FUNNEL_SCALE);
+         }
+
+         if (this.skirt != null) {
+            this.skirt.setPosition(this.x + mid.x, gy + mid.y, this.z + mid.z);
+            Models.pose(this.skirt, new Quaternionf(lean).rotateY(-turn * 1.6F), FUNNEL_SCALE);
+         }
+
+         for (int i = 0; i < this.debris.length; i++) {
+            if (this.debris[i] != null) {
+               float h = 5.0F + i * 7.0F;
+               double rad = 1.3 + h * 0.22;
+               double a = age * 0.35 + i * 2.1;
+               Vector3f at = lean.transform(new Vector3f(0.0F, h, 0.0F));
+               this.debris[i].setPosition(this.x + at.x + Math.cos(a) * rad, gy + at.y, this.z + at.z + Math.sin(a) * rad);
+               Models.pose(this.debris[i], new Quaternionf().rotationY((float)(-a)).rotateX(age * 0.2F), 1.6F);
+            }
+         }
+      }
+
+      private void discard() {
+         if (this.funnel != null) {
+            this.funnel.discard();
+         }
+
+         if (this.skirt != null) {
+            this.skirt.discard();
+         }
+
+         for (ItemDisplayEntity e : this.debris) {
+            if (e != null) {
+               e.discard();
+            }
+         }
+      }
+
+      private static boolean spared(Entity e) {
+         return e instanceof PlayerEntity p && p.isCreative();
+      }
+
       @Override
       public boolean tick() {
          Random r = this.w.getRandom();
-         this.vx = MathHelper.clamp(this.vx + (r.nextDouble() - 0.5) * 0.06, -0.25, 0.25);
-         this.vz = MathHelper.clamp(this.vz + (r.nextDouble() - 0.5) * 0.06, -0.25, 0.25);
+         int age = LIFE - this.life;
+         if (age % 20 == 0) {
+            // Wander, but be drawn toward the nearest creature.
+            this.prey = null;
+            double best = 1024.0;
+
+            for (LivingEntity e : Fx.living(this.w, new Vec3d(this.x, Fx.surface(this.w, MathHelper.floor(this.x), MathHelper.floor(this.z)).getY(), this.z), 32.0)) {
+               double d = e.squaredDistanceTo(this.x, e.getY(), this.z);
+               if (d < best && d > 9.0 && !spared(e)) {
+                  best = d;
+                  this.prey = e;
+               }
+            }
+         }
+
+         double ax = (r.nextDouble() - 0.5) * 0.06;
+         double az = (r.nextDouble() - 0.5) * 0.06;
+         if (this.prey != null && this.prey.isAlive()) {
+            double px = this.prey.getX() - this.x;
+            double pz = this.prey.getZ() - this.z;
+            double pd = Math.max(1.0, Math.sqrt(px * px + pz * pz));
+            ax += px / pd * 0.012;
+            az += pz / pd * 0.012;
+         }
+
+         this.vx = MathHelper.clamp(this.vx + ax, -0.25, 0.25);
+         this.vz = MathHelper.clamp(this.vz + az, -0.25, 0.25);
          this.x = this.x + this.vx;
          this.z = this.z + this.vz;
          int gy = Fx.surface(this.w, MathHelper.floor(this.x), MathHelper.floor(this.z)).getY();
-         this.model(gy);
+         BlockPos foot = BlockPos.ofFloored(this.x, gy - 1, this.z);
+         BlockState ground = this.w.getBlockState(foot);
+         this.model(gy, age);
 
-         for (int i = 0; i < 30; i++) {
-            double h = r.nextDouble() * 26.0;
-            double a = r.nextDouble() * Math.PI * 2.0;
+         // Two cloud bands spiralling up the funnel.
+         for (int i = 0; i < 16; i++) {
+            double h = (age * 0.9 + i * (HEIGHT / 8.0)) % HEIGHT;
+            double a = h * 0.55 + age * 0.4 + (i % 2) * Math.PI;
             double rad = 0.5 + h * 0.22;
             Fx.particles(this.w, ParticleTypes.CLOUD, this.x + Math.cos(a) * rad, gy + h, this.z + Math.sin(a) * rad, 1, 0.0, 0.0, 0.0, 0.0);
+         }
+
+         if (ground.getFluidState().isIn(FluidTags.WATER)) {
+            // Over water it becomes a waterspout.
+            Fx.particles(this.w, ParticleTypes.SPLASH, this.x, gy + 0.5, this.z, 14, 2.5, 0.5, 2.5, 0.3);
+            Fx.particles(this.w, ParticleTypes.FALLING_WATER, this.x, gy + 8.0, this.z, 6, 2.0, 4.0, 2.0, 0.0);
+         } else if (!ground.isAir()) {
+            Fx.particles(this.w, new BlockStateParticleEffect(ParticleTypes.BLOCK, ground), this.x, gy + 0.5, this.z, 8, 2.0, 0.4, 2.0, 0.2);
          }
 
          Box box = new Box(this.x - 10.0, gy - 4, this.z - 10.0, this.x + 10.0, gy + 32, this.z + 10.0);
@@ -453,12 +521,25 @@ public final class Disasters {
             double dx = this.x - e.getX();
             double dz = this.z - e.getZ();
             double d = Math.max(0.5, Math.sqrt(dx * dx + dz * dz));
-            if (!(d > 10.0)) {
+            if (!(d > 10.0) && !spared(e)) {
                double tx = -dz / d * 0.45;
                double tz = dx / d * 0.45;
                double up = e.getY() < gy + 24 ? 0.16 + (d < 3.0 ? 0.12 : 0.0) : -0.05;
                e.setVelocity(e.getVelocity().multiply(0.75).add(dx / d * 0.16 + tx, up, dz / d * 0.16 + tz));
                e.velocityModified = true;
+               if (d < 3.0 && age % 10 == 0 && e instanceof LivingEntity le) {
+                  // Battered by debris inside the funnel.
+                  le.damage(this.w.getDamageSources().flyIntoWall(), 2.0F);
+               }
+            }
+         }
+
+         // Strips leaves, plants and other flimsy blocks around the funnel.
+         for (int k = 0; k < 4; k++) {
+            BlockPos p = BlockPos.ofFloored(this.x + (r.nextDouble() - 0.5) * 8.0, gy + r.nextInt(12), this.z + (r.nextDouble() - 0.5) * 8.0);
+            BlockState s = this.w.getBlockState(p);
+            if (s.getFluidState().isEmpty() && (s.isIn(BlockTags.LEAVES) || Fx.breakable(this.w, p, s, 0.3F))) {
+               this.w.breakBlock(p, false);
             }
          }
 
@@ -480,7 +561,12 @@ public final class Disasters {
             Fx.sound(this.w, this.x, gy + 5, this.z, SoundEvents.ITEM_ELYTRA_FLYING, 5.0F, 0.6F);
          }
 
-         return --this.life <= 0;
+         if (--this.life <= 0) {
+            this.discard();
+            return true;
+         } else {
+            return false;
+         }
       }
    }
 }

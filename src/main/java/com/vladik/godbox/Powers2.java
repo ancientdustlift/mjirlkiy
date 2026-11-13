@@ -12,6 +12,7 @@ import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.FarmlandBlock;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.MushroomPlantBlock;
@@ -57,6 +58,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World.ExplosionSourceType;
@@ -1175,40 +1177,131 @@ public final class Powers2 {
    }
 
    static final class Geyser implements Tasks.Task {
+      private static final int CYCLE = 80;
       final ServerWorld w;
       final Vec3d c;
       int t;
+      float h = 0.4F;
+      ItemDisplayEntity jet;
+      ItemDisplayEntity cone;
 
       Geyser(ServerWorld w, Vec3d c) {
          this.w = w;
          this.c = c;
       }
 
+      private void model(boolean burst) {
+         if (this.t == 1) {
+            // The cone model is drawn at twice size, which puts its base one block below its centre.
+            this.cone = Models.prop(this.w, "geyser", "cone", this.c.x, this.c.y + 1.0, this.c.z);
+            if (this.cone != null) {
+               Models.pose(this.cone, new Quaternionf(), 2.0F);
+            }
+
+            this.jet = Models.prop(this.w, "geyser", "jet", this.c.x, this.c.y, this.c.z);
+            if (this.jet != null) {
+               this.jet.setTeleportDuration(2);
+               this.jet.setInterpolationDuration(2);
+            }
+         }
+
+         if (this.jet != null) {
+            // The jet model is one block tall, so its vertical scale is the column height.
+            float wide = burst ? 2.2F : 1.3F;
+            this.jet.setPosition(this.c.x, this.c.y + this.h * 0.5, this.c.z);
+            Models.pose(this.jet, new Quaternionf().rotationY(this.t * 0.3F), new Vector3f(wide, this.h, wide));
+         }
+      }
+
+      /** The falling spray puts out fires, waters farmland and makes plants grow. */
+      private void water(Random r) {
+         for (int k = 0; k < 4; k++) {
+            double a = r.nextDouble() * Math.PI * 2.0;
+            double d = r.nextDouble() * 7.0;
+            BlockPos p = Fx.surface(this.w, MathHelper.floor(this.c.x + Math.cos(a) * d), MathHelper.floor(this.c.z + Math.sin(a) * d));
+            if (Math.abs(p.getY() - this.c.y) > 6.0) {
+               continue;
+            }
+
+            if (this.w.getBlockState(p).isIn(BlockTags.FIRE)) {
+               set(this.w, p, Blocks.AIR.getDefaultState());
+            }
+
+            BlockPos below = p.down();
+            BlockState ground = this.w.getBlockState(below);
+            if (ground.getBlock() instanceof FarmlandBlock) {
+               this.w.setBlockState(below, ground.with(FarmlandBlock.MOISTURE, 7), 2);
+            }
+
+            Fx.grow(this.w, p);
+            Fx.grow(this.w, below);
+         }
+      }
+
       @Override
       public boolean tick() {
          this.t++;
-         boolean burst = this.t / 40 % 2 == 1;
-         int top = burst ? 14 : 3;
+         int phase = this.t % CYCLE;
+         boolean burst = phase >= 40;
+         boolean warn = phase >= 26 && !burst;
+         float target = burst ? 14.0F : (warn ? 1.6F : 0.5F);
+         this.h = this.h + (target - this.h) * (burst ? 0.3F : 0.15F);
+         this.model(burst);
+         Random r = this.w.getRandom();
 
-         for (int y = 0; y < top; y += 2) {
+         for (int y = 0; y < this.h; y += 2) {
             Fx.particles(this.w, ParticleTypes.SPLASH, this.c.x, this.c.y + y, this.c.z, 12, 0.3, 0.8, 0.3, 0.3);
          }
 
-         Fx.particles(this.w, burst ? ParticleTypes.CLOUD : ParticleTypes.BUBBLE_POP, this.c.x, this.c.y + top, this.c.z, 6, 0.6, 0.4, 0.6, 0.05);
+         Fx.particles(this.w, burst ? ParticleTypes.CLOUD : ParticleTypes.BUBBLE_POP, this.c.x, this.c.y + this.h, this.c.z, 6, 0.6, 0.4, 0.6, 0.05);
+         if (warn) {
+            // The ground rumbles and steams before each eruption.
+            if (phase == 26) {
+               Fx.sound(this.w, this.c.x, this.c.y, this.c.z, SoundEvents.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 3.0F, 0.6F);
+            }
+
+            Fx.particles(this.w, ParticleTypes.CLOUD, this.c.x, this.c.y + 0.5, this.c.z, 2, 0.5, 0.2, 0.5, 0.02);
+         }
+
          if (burst) {
+            if (phase == 40) {
+               Fx.sound(this.w, this.c.x, this.c.y, this.c.z, SoundEvents.ENTITY_GENERIC_SPLASH, 4.0F, 0.5F);
+               Fx.particles(this.w, ParticleTypes.CLOUD, this.c.x, this.c.y + 1.0, this.c.z, 30, 1.0, 0.5, 1.0, 0.1);
+            }
+
+            Fx.particles(this.w, ParticleTypes.FALLING_WATER, this.c.x, this.c.y + 10.0, this.c.z, 12, 3.5, 2.0, 3.5, 0.0);
+
             for (LivingEntity e : Fx.living(this.w, new Vec3d(this.c.x, this.c.y + 3.0, this.c.z), 4.0)) {
                Vec3d v = e.getVelocity();
                e.setVelocity(v.x * 0.5, 1.1, v.z * 0.5);
                e.velocityModified = true;
                e.extinguish();
+               if (this.t % 10 == 0) {
+                  // Scalding water.
+                  e.damage(this.w.getDamageSources().hotFloor(), 1.0F);
+               }
             }
 
             if (this.t % 10 == 0) {
                Fx.sound(this.w, this.c.x, this.c.y, this.c.z, SoundEvents.ENTITY_GENERIC_SPLASH, 2.0F, 0.6F);
             }
+
+            this.water(r);
          }
 
-         return this.t > 240;
+         if (this.t > 240) {
+            if (this.jet != null) {
+               this.jet.discard();
+            }
+
+            if (this.cone != null) {
+               this.cone.discard();
+            }
+
+            return true;
+         } else {
+            return false;
+         }
       }
    }
 
@@ -1269,6 +1362,7 @@ public final class Powers2 {
       final BlockPos base;
       final int h;
       final double rad;
+      final Volcanics.Plume plume = new Volcanics.Plume();
       int t;
 
       Volcano(ServerWorld w, BlockPos base, int h) {
@@ -1329,28 +1423,39 @@ public final class Powers2 {
             double z = this.base.getZ() + 0.5;
             Fx.particles(this.w, ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y + 1.0, z, 4, 0.8, 0.5, 0.8, 0.04);
             Fx.particles(this.w, ParticleTypes.LAVA, x, y + 0.5, z, 6, 1.0, 0.3, 1.0, 0.0);
-            if (e % 4 == 0) {
-               BlockPos at = BlockPos.ofFloored(x, y + 2.0, z);
-               if (this.w.getBlockState(at).isAir()) {
-                  FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(this.w, at, Blocks.MAGMA_BLOCK.getDefaultState());
-                  fb.setVelocity(r.nextGaussian() * 0.35, 0.7 + r.nextFloat() * 0.6, r.nextGaussian() * 0.35);
-                  fb.velocityModified = true;
-                  fb.dropItem = false;
-                  fb.setHurtEntities(2.0F, 20);
-               }
+            this.plume.update(this.w, x, y + 1.0, z, Math.min(this.h * 0.45F, 1.0F + e * 0.06F), e);
+            Fx.particles(this.w, ParticleTypes.ASH, x, y + 4.0, z, 20, this.rad, 6.0, this.rad, 0.0);
+            if (e % 6 == 0) {
+               Volcanics.bomb(this.w, x, y + 2.0, z, r.nextGaussian() * 0.3, 0.7 + r.nextFloat() * 0.5, r.nextGaussian() * 0.3, false);
+            }
+
+            if (e % 40 == 30) {
+               // A rumble before each blast.
+               Fx.sound(this.w, x, y, z, SoundEvents.BLOCK_LAVA_AMBIENT, 4.0F, 0.5F);
+               Fx.particles(this.w, ParticleTypes.LARGE_SMOKE, x, y + 1.0, z, 25, 1.2, 0.8, 1.2, 0.05);
             }
 
             if (e % 40 == 0) {
                Powers2.set(this.w, BlockPos.ofFloored(x, y, z), Blocks.LAVA.getDefaultState());
                Fx.sound(this.w, x, y, z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 4.0F, 0.5F);
                Fx.particles(this.w, ParticleTypes.EXPLOSION, x, y + 1.0, z, 3, 1.0, 1.0, 1.0, 0.0);
+               this.plume.puff();
+
+               for (int i = 0; i < 4; i++) {
+                  Volcanics.bomb(this.w, x, y + 2.0, z, r.nextGaussian() * 0.45, 0.9 + r.nextFloat() * 0.6, r.nextGaussian() * 0.45, true);
+               }
             }
 
             for (LivingEntity le : Fx.living(this.w, new Vec3d(x, y, z), 2.5)) {
                le.setOnFireFor(4.0F);
             }
 
-            return e > 320;
+            if (e > 320) {
+               this.plume.discard();
+               return true;
+            } else {
+               return false;
+            }
          }
       }
    }

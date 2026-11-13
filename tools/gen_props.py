@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates the box models and textures for bombs, the black hole, the tornado, aliens, ships and staffs.
+"""Generates the box models and textures for bombs, the black hole, the tornado, the tsunami wave, the volcano, the geyser, aliens, ships and staffs.
 
 Usage: python3 tools/gen_props.py [src/main/resources/assets/godbox]
 
@@ -344,6 +344,138 @@ def tornado():
         for rot in (None, ("y", 45)):
             skirt.append(g.box([8 - r, y0, 8 - r], [8 + r, y1, 8 + r], dust, faces=SIDES, shade=False, rot=rot))
     g.part("skirt", 4601, skirt)
+    g.part(
+        "debris",
+        4602,
+        [
+            g.box([2, 7, 6], [12, 8.5, 9], wood((150, 110, 66), axis=0)),
+            g.box([6, 9, 2], [8, 10.2, 11], wood((126, 90, 52), axis=2)),
+            g.box([10, 3, 10], [13, 6, 13], solid((120, 120, 124))),
+            g.box([3, 11, 3], [6, 13, 6], solid((70, 140, 56), 0.3)),
+        ],
+    )
+    g.write()
+
+
+# ---------------------------------------------------------------- tsunami wave
+
+
+def wave():
+    g = Group("wave", 256)
+
+    def water(p, face, rng):
+        t = max(0.0, min(1.0, p[1] / 16.0))
+        streak = 0.5 + 0.5 * math.sin(p[0] * 1.3 + p[1] * 0.5 + p[2] * 0.4)
+        return 30 + 50 * t + 30 * streak, 100 + 70 * t + 30 * streak, 190 + 50 * t, 190 - 30 * streak
+
+    def foam(p, face, rng):
+        v = 232 + 23 * rng.random()
+        return v, v, 255, 120 if rng.random() < 0.2 else 240
+
+    # The wave breaks toward -Z (north) in model space; item displays turn that to +Z.
+    g.part(
+        "crest",
+        5000,
+        [
+            g.box([0, 0, 9], [16, 6, 16], water, shade=False),
+            g.box([0, 0, 5], [16, 11, 11], water, shade=False),
+            g.box([0, 9, 2], [16, 14, 8], water, shade=False),
+            g.box([0, 12, -1], [16, 15, 4], water, shade=False),
+            g.box([0, 13.5, -2.5], [16, 15.5, 0], foam, shade=False),
+            g.box([0, 14, 2], [16, 15.2, 7], foam, faces=("up", "west", "east", "north", "south"), shade=False),
+            g.box([0, 0, 3.5], [16, 1.5, 5], foam, shade=False),
+        ],
+    )
+    g.write()
+
+
+# ---------------------------------------------------------------- volcano
+
+
+def volcano():
+    g = Group("volcano", 256)
+
+    def lava(p, face, rng):
+        n = math.sin(p[0] * 1.7 + p[1]) * math.sin(p[1] * 1.3 + p[2] * 1.9) * math.sin(p[2] * 1.1 + p[0])
+        if n > 0.08:
+            k = 0.8 + rng.random() * 0.4
+            return 54 * k, 32 * k, 28 * k, 255
+        return 255, 130 + 90 * rng.random(), 30, 255
+
+    g.part(
+        "bomb",
+        5100,
+        [
+            g.box([4, 4, 4], [12, 12, 12], lava, shade=False),
+            g.box([3, 5.5, 5.5], [13, 10.5, 10.5], lava, shade=False),
+            g.box([5.5, 3, 5.5], [10.5, 13, 10.5], lava, shade=False),
+            g.box([5.5, 5.5, 3], [10.5, 10.5, 13], lava, shade=False),
+        ],
+    )
+
+    def ash(p, face, rng):
+        if rng.random() < 0.08:
+            return 0, 0, 0, 0
+        t = (p[1] + 16) / 48.0
+        v = 44 + 46 * rng.random() + 24 * t
+        return v, v * 0.96, v * 0.94, 205 - 40 * t
+
+    layers = []
+    for k in range(6):
+        y = -16 + 6 * k
+        r = 2.5 + 1.2 * k
+        for rot in (None, ("y", 45)):
+            layers.append(g.box([8 - r, y, 8 - r], [8 + r, y + 6, 8 + r], ash, faces=SIDES, shade=False, rot=rot))
+    # Mushroom cap.
+    layers.append(g.box([-4, 20, -4], [20, 27, 20], ash, shade=False))
+    layers.append(g.box([-7, 22, -1], [23, 26, 17], ash, shade=False))
+    layers.append(g.box([-1, 22, -7], [17, 26, 23], ash, shade=False))
+    layers.append(g.box([0, 27, 0], [16, 31, 16], ash, shade=False))
+    g.part("plume", 5101, layers)
+    g.write()
+
+
+# ---------------------------------------------------------------- geyser
+
+
+def geyser():
+    g = Group("geyser", 128)
+
+    def jet(p, face, rng):
+        a, _ = plane(p, face)
+        v = 0.5 + 0.5 * math.sin(a * 2.2 + math.sin(p[1] * 0.9))
+        return 170 + 70 * v, 215 + 35 * v, 255, 120 + 90 * v
+
+    def spray(p, face, rng):
+        v = 235 + 20 * rng.random()
+        return v, v, 255, 90 if rng.random() < 0.3 else 220
+
+    g.part(
+        "jet",
+        5200,
+        [
+            g.box([5, 0, 5], [11, 16, 11], jet, faces=SIDES, shade=False),
+            g.box([3.5, 0, 3.5], [12.5, 16, 12.5], jet, faces=SIDES, shade=False, rot=("y", 45)),
+            g.box([4, 14, 4], [12, 16, 12], spray, shade=False),
+        ],
+    )
+
+    def sinter(p, face, rng):
+        if face == "up" and math.hypot(p[0] - 8, p[2] - 8) < 2.2:
+            return 40, 96, 150, 255
+        k = 0.85 + rng.random() * 0.25
+        band = 0.9 if int(p[1] * 2) % 2 == 0 else 1.0
+        return 206 * k * band, 194 * k * band, 172 * k * band, 255
+
+    g.part(
+        "cone",
+        5201,
+        [
+            g.box([1, 0, 1], [15, 2, 15], sinter),
+            g.box([3, 2, 3], [13, 4, 13], sinter),
+            g.box([5, 4, 5], [11, 5.5, 11], sinter),
+        ],
+    )
     g.write()
 
 
@@ -583,6 +715,9 @@ if __name__ == "__main__":
     bombs()
     blackhole()
     tornado()
+    wave()
+    volcano()
+    geyser()
     alien()
     ship()
     staffs()

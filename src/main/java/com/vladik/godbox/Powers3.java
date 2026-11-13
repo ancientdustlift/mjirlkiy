@@ -129,8 +129,9 @@ public final class Powers3 {
             msg(god, "Чёрная дыра открылась!", Formatting.DARK_PURPLE);
             break;
          case TSUNAMI:
-            Tasks.add(new Powers3.Tsunami(w, pos, god.getYaw(), brush));
-            msg(god, "Цунами идёт вперёд по взгляду камеры", Formatting.BLUE);
+            Tsunami tsunami = new Tsunami(w, pos, god.getYaw(), brush);
+            Tasks.add(tsunami);
+            msg(god, tsunami.fromWater ? "Цунами поднимается из ближайшего водоёма" : "Рядом нет воды — цунами идёт по взгляду камеры", Formatting.BLUE);
             break;
          case ICE_AGE:
             Tasks.add(new Powers3.IceAge(god, w, pos, brush));
@@ -942,122 +943,6 @@ public final class Powers3 {
          }
 
          return this.x > this.R && this.tile >= this.tiles.size() && this.t > 400;
-      }
-   }
-
-   private static final class Tsunami implements Tasks.Task {
-      final ServerWorld w;
-      final Vec3d start;
-      final Vec3d dir;
-      final Vec3d side;
-      final int width;
-      final int height;
-      final int length;
-      int step;
-      int t;
-      final ArrayDeque<List<BlockPos>> rows = new ArrayDeque<>();
-      final Set<BlockPos> active = new HashSet<>();
-
-      Tsunami(ServerWorld w, BlockPos pos, float yaw, int brush) {
-         this.w = w;
-         Vec3d d = Vec3d.fromPolar(0.0F, yaw);
-         this.dir = new Vec3d(d.x, 0.0, d.z).normalize();
-         this.side = new Vec3d(-this.dir.z, 0.0, this.dir.x);
-         this.width = 16 + brush * 4;
-         this.height = 4 + brush / 2;
-         this.length = 40 + brush * 6;
-         this.start = Vec3d.ofCenter(pos).subtract(this.dir.multiply(12.0));
-      }
-
-      private void drain(List<BlockPos> row) {
-         for (BlockPos p : row) {
-            this.active.remove(p);
-            if (this.w.getBlockState(p).isOf(Blocks.WATER)) {
-               this.w.setBlockState(p, Blocks.AIR.getDefaultState(), 3);
-            }
-         }
-      }
-
-      @Override
-      public boolean tick() {
-         if (++this.t % 2 != 0) {
-            return false;
-         } else if (this.step >= this.length) {
-            if (!this.rows.isEmpty()) {
-               this.drain(this.rows.poll());
-            }
-
-            return this.rows.isEmpty();
-         } else {
-            Vec3d f = this.start.add(this.dir.multiply(this.step));
-            int h = this.step < 4
-               ? this.height / 2 + 1
-               : (this.step > this.length - 6 ? Math.max(1, this.height * (this.length - this.step) / 6) : this.height);
-            List<BlockPos> row = new ArrayList<>();
-
-            for (int s = -this.width / 2; s <= this.width / 2; s++) {
-               Vec3d q = f.add(this.side.multiply(s));
-               int x = MathHelper.floor(q.x);
-               int z = MathHelper.floor(q.z);
-               if (this.w.isChunkLoaded(x >> 4, z >> 4)) {
-                  BlockPos g = this.w.getTopPosition(Type.OCEAN_FLOOR, new BlockPos(x, 0, z));
-
-                  while (this.w.getBlockState(g).getFluidState().isIn(FluidTags.WATER) && !this.active.contains(g) && g.getY() < this.w.getTopY()) {
-                     g = g.up();
-                  }
-
-                  for (int y = 0; y < h; y++) {
-                     BlockPos p = g.up(y);
-                     if (!this.active.contains(p)) {
-                        BlockState st = this.w.getBlockState(p);
-                        if (!st.isAir()) {
-                           if (!st.getFluidState().isEmpty()) {
-                              continue;
-                           }
-
-                           float hard = st.getHardness(this.w, p);
-                           if (!st.isReplaceable() && (hard < 0.0F || hard > 0.8F)) {
-                              continue;
-                           }
-
-                           this.w.breakBlock(p, false);
-                        }
-
-                        this.w.setBlockState(p, Blocks.WATER.getDefaultState(), 2);
-                        row.add(p);
-                        this.active.add(p);
-                     }
-                  }
-
-                  if ((s & 1) == 0) {
-                     Fx.particles(this.w, ParticleTypes.SPLASH, q.x, g.getY() + h, q.z, 6, 0.5, 0.3, 0.5, 0.2);
-                  }
-               }
-            }
-
-            for (LivingEntity e : Fx.living(this.w, f.add(0.0, 2.0, 0.0), this.width / 2.0 + 1.0)) {
-               if (!GodManager.isGodEntity(e) && !e.isSpectator()) {
-                  Vec3d rel = e.getPos().subtract(f);
-                  double along = rel.dotProduct(this.dir);
-                  if (!(along < -2.0) && !(along > 4.0)) {
-                     e.setVelocity(e.getVelocity().multiply(0.5).add(this.dir.multiply(0.9)).add(0.0, 0.25, 0.0));
-                     e.velocityModified = true;
-                  }
-               }
-            }
-
-            if (this.step % 8 == 0) {
-               Fx.sound(this.w, f.x, f.y + h, f.z, SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 6.0F, 0.5F);
-            }
-
-            this.rows.add(row);
-            this.step++;
-            if (this.rows.size() > 3) {
-               this.drain(this.rows.poll());
-            }
-
-            return false;
-         }
       }
    }
 

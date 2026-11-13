@@ -156,7 +156,11 @@ public final class Models {
    }
 
    public static void pose(ItemDisplayEntity e, Quaternionf rotation, float scale) {
-      e.setTransformation(new AffineTransformation(new Vector3f(), rotation, new Vector3f(scale, scale, scale), new Quaternionf()));
+      pose(e, rotation, new Vector3f(scale, scale, scale));
+   }
+
+   public static void pose(ItemDisplayEntity e, Quaternionf rotation, Vector3f scale) {
+      e.setTransformation(new AffineTransformation(new Vector3f(), rotation, scale, new Quaternionf()));
       e.getDataTracker().set(DisplayEntityAccessor.godbox$startInterpolation(), 0, true);
    }
 

@@ -1230,6 +1230,12 @@
   },
   {
    "predicate": {
+    "custom_model_data": 4602
+   },
+   "model": "godbox:item/m/tornado/debris"
+  },
+  {
+   "predicate": {
     "custom_model_data": 4700
    },
    "model": "godbox:item/m/alien/head"
@@ -1293,6 +1299,36 @@
     "custom_model_data": 4905
    },
    "model": "godbox:item/m/staffs/mage"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 5000
+   },
+   "model": "godbox:item/m/wave/crest"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 5100
+   },
+   "model": "godbox:item/m/volcano/bomb"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 5101
+   },
+   "model": "godbox:item/m/volcano/plume"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 5200
+   },
+   "model": "godbox:item/m/geyser/jet"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 5201
+   },
+   "model": "godbox:item/m/geyser/cone"
   }
  ]
 }
