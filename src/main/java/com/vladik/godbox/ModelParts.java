@@ -1074,7 +1074,24 @@ public final class ModelParts {
       );
    }
 
+   private static void c_meteor() {
+      ALL.put(
+         "meteor",
+         new ModelParts.Creature(
+            "meteor",
+            1.0F,
+            false,
+            false,
+            new ModelParts.Part[]{
+               p("rock", 4300, -1, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, true),
+               p("fire", 4301, -1, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, true)
+            }
+         )
+      );
+   }
+
    static {
+      c_meteor();
       c_crab();
       c_robot();
       c_titan();

@@ -1131,6 +1131,18 @@
     "custom_model_data": 4201
    },
    "model": "godbox:item/m/catapult/arm"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4300
+   },
+   "model": "godbox:item/m/meteor/rock"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4301
+   },
+   "model": "godbox:item/m/meteor/fire"
   }
  ]
 }

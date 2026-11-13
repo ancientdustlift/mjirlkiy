@@ -131,6 +131,35 @@ public final class Models {
       }
    }
 
+   /** A free-standing, unsaved display for a model part that no creature carries, such as a projectile. */
+   public static ItemDisplayEntity prop(ServerWorld w, String creature, String name, double x, double y, double z) {
+      ItemStack stack = part(creature, name);
+      if (stack == null) {
+         return null;
+      }
+
+      ItemDisplayEntity e = new ItemDisplayEntity(EntityType.ITEM_DISPLAY, w) {
+         @Override
+         public boolean shouldSave() {
+            return false;
+         }
+      };
+      e.setItemStack(stack);
+      e.setTeleportDuration(1);
+      e.setInterpolationDuration(1);
+      e.setViewRange(8.0F);
+      e.setDisplayWidth(24.0F);
+      e.setDisplayHeight(24.0F);
+      e.setBrightness(new Brightness(15, 15));
+      e.refreshPositionAndAngles(x, y, z, 0.0F, 0.0F);
+      return w.spawnEntity(e) ? e : null;
+   }
+
+   public static void pose(ItemDisplayEntity e, Quaternionf rotation, float scale) {
+      e.setTransformation(new AffineTransformation(new Vector3f(), rotation, new Vector3f(scale, scale, scale), new Quaternionf()));
+      e.getDataTracker().set(DisplayEntityAccessor.godbox$startInterpolation(), 0, true);
+   }
+
    public static boolean isHat(ItemStack stack) {
       return item != null && stack.isOf(item);
    }

@@ -6,6 +6,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.BlockStateParticleEffect;
@@ -20,6 +21,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World.ExplosionSourceType;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 public final class Disasters {
    private Disasters() {
@@ -196,12 +199,16 @@ public final class Disasters {
 
    public static final class Meteor implements Tasks.Task {
       private static final int DURATION = 30;
+      private static final float SCALE = 3.0F;
       private final ServerWorld w;
       private final BlockPos target;
       private final double sx;
       private final double sy;
       private final double sz;
       private int t = 0;
+      private ItemDisplayEntity rock;
+      private ItemDisplayEntity fire;
+      private Vector3f spin;
 
       public Meteor(ServerWorld w, BlockPos target) {
          this.w = w;
@@ -212,6 +219,42 @@ public final class Disasters {
          this.sy = target.getY() + 80;
       }
 
+      private void spawnModel() {
+         this.rock = Models.prop(this.w, "meteor", "rock", this.sx, this.sy, this.sz);
+         this.fire = Models.prop(this.w, "meteor", "fire", this.sx, this.sy, this.sz);
+         Random r = this.w.getRandom();
+         this.spin = new Vector3f(r.nextFloat() - 0.5F, r.nextFloat() - 0.5F, r.nextFloat() - 0.5F).add(0.1F, 0.1F, 0.1F).normalize();
+         if (this.fire != null) {
+            // The fire model trails along +Y; point that back along the flight path.
+            Vector3f back = new Vector3f(
+                  (float)(this.sx - (this.target.getX() + 0.5)), (float)(this.sy - (this.target.getY() + 1.0)), (float)(this.sz - (this.target.getZ() + 0.5))
+               )
+               .normalize();
+            Models.pose(this.fire, new Quaternionf().rotationTo(new Vector3f(0.0F, 1.0F, 0.0F), back), SCALE);
+         }
+      }
+
+      private void moveModel(double x, double y, double z) {
+         if (this.rock != null) {
+            this.rock.setPosition(x, y, z);
+            Models.pose(this.rock, new Quaternionf().rotationAxis(this.t * 0.45F, this.spin), SCALE);
+         }
+
+         if (this.fire != null) {
+            this.fire.setPosition(x, y, z);
+         }
+      }
+
+      private void removeModel() {
+         if (this.rock != null) {
+            this.rock.discard();
+         }
+
+         if (this.fire != null) {
+            this.fire.discard();
+         }
+      }
+
       @Override
       public boolean tick() {
          double k = this.t / 30.0;
@@ -220,8 +263,10 @@ public final class Disasters {
          double z = MathHelper.lerp(k, this.sz, this.target.getZ() + 0.5);
          if (this.t == 0) {
             Fx.sound(this.w, this.target.getX(), this.target.getY() + 20, this.target.getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, 6.0F, 0.4F);
+            this.spawnModel();
          }
 
+         this.moveModel(x, y, z);
          Fx.particles(this.w, ParticleTypes.FLAME, x, y, z, 30, 0.7, 0.7, 0.7, 0.05);
          Fx.particles(this.w, ParticleTypes.LARGE_SMOKE, x, y, z, 15, 0.8, 0.8, 0.8, 0.02);
          Fx.particles(this.w, ParticleTypes.LAVA, x, y, z, 4, 0.5, 0.5, 0.5, 0.0);
@@ -229,6 +274,7 @@ public final class Disasters {
             this.t++;
             return false;
          } else {
+            this.removeModel();
             double cx = this.target.getX() + 0.5;
             double cy = this.target.getY() + 1;
             double cz = this.target.getZ() + 0.5;
