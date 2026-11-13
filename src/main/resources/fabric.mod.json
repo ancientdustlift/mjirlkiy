@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "godbox",
+  "version": "${version}",
+  "name": "GodBox",
+  "description": "Режим бога в стиле WorldBox: вид сверху, бомбы, стихии, королевства, боссы, законы мира и терраформинг.",
+  "authors": [
+    "vladik"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.vladik.godbox.GodBox"
+    ],
+    "client": [
+      "com.vladik.godbox.client.GodBoxClient"
+    ]
+  },
+  "mixins": [
+    "godbox.mixins.json"
+  ],
+  "accessWidener": "godbox.accesswidener",
+  "depends": {
+    "fabricloader": "\u003e\u003d0.15.0",
+    "minecraft": "~1.21.1",
+    "java": "\u003e\u003d21",
+    "fabric-api": "*"
+  }
+}
