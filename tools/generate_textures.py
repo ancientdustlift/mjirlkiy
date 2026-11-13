@@ -597,7 +597,7 @@ VASILY_HAIR_DARK = (74, 62, 54)
 SWEATPANTS = (158, 158, 162)
 SWEATPANTS_DARK = (128, 128, 134)
 # Hand-drawn face: short ash-brown hair with a straight, choppy fringe, low straight brows over
-# large grey-blue eyes, broad nose, thin closed mouth with a slight smirk. Hair down the temples and
+# wide grey-blue eyes one pixel high, broad nose, thin closed mouth with a slight smirk. Hair down the temples and
 # shaded cheek and jaw edges make the face read narrower than the square head it is drawn on.
 VASILY_FACE = [
     "hhhhhhhhhhhhhhhh",
@@ -607,8 +607,8 @@ VASILY_FACE = [
     "hhhshsslsshsshhh",
     "hhssllllllllsshh",
     "hjbbbbssssbbbbjh",
-    "hjswEEssssEEwsjh",
-    "hjsweesssseewsjh",
+    "hjswEesssseEwsjh",
+    "hjssssssssssssjh",
     "JjssssslllssssjJ",
     "JjsssssnnsssssjJ",
     "JjssssNnnNssssjJ",
