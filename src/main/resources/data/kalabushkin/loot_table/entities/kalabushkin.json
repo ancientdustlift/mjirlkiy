@@ -6,51 +6,6 @@
 			"entries": [
 				{
 					"type": "minecraft:item",
-					"name": "kalabushkin:architect_ruler"
-				}
-			]
-		},
-		{
-			"rolls": 1,
-			"entries": [
-				{
-					"type": "minecraft:item",
-					"name": "kalabushkin:drafting_compass"
-				}
-			]
-		},
-		{
-			"rolls": 1,
-			"entries": [
-				{
-					"type": "minecraft:item",
-					"name": "kalabushkin:set_square"
-				}
-			]
-		},
-		{
-			"rolls": 1,
-			"entries": [
-				{
-					"type": "minecraft:item",
-					"name": "kalabushkin:architect_pencil"
-				}
-			]
-		},
-		{
-			"rolls": 1,
-			"entries": [
-				{
-					"type": "minecraft:item",
-					"name": "kalabushkin:blueprint"
-				}
-			]
-		},
-		{
-			"rolls": 1,
-			"entries": [
-				{
-					"type": "minecraft:item",
 					"name": "kalabushkin:carpenter_plane"
 				},
 				{

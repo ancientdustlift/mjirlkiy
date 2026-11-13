@@ -3,7 +3,7 @@
 	"id": "kalabushkin",
 	"version": "${version}",
 	"name": "Legends of Seltso",
-	"description": "The legends of Seltso as Minecraft mobs. Kalabushkin fist-bumps you, drops a set of architect's tools and leaves a spirit that follows you. Vlad Logutov rides his mountain bike and stops to ask you a question.",
+	"description": "The legends of Seltso as Minecraft mobs. Kalabushkin fist-bumps you, drops a carpenter's plane or mallet and leaves a spirit that follows you. Vlad Logutov rides his mountain bike up to you to ask a question and drops the Shatuni, a two-handed crankset you spin like a circular saw.",
 	"icon": "assets/kalabushkin/icon.png",
 	"authors": ["ancientdustlift"],
 	"license": "MIT",

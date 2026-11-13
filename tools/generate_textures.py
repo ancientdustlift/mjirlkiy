@@ -223,126 +223,6 @@ def spirit(base):
     return img
 
 
-def item(rows, palette):
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    for y, row in enumerate(rows):
-        for x, ch in enumerate(row):
-            if ch != ".":
-                img.putpixel((x, y), palette[ch])
-    return img
-
-
-ITEMS = {
-    "architect_ruler": (
-        [
-            "................",
-            ".............oo.",
-            "............oyyo",
-            "...........oyhyo",
-            "..........oykyo.",
-            ".........oyhyo..",
-            "........oykyo...",
-            ".......oyhyo....",
-            "......oykyo.....",
-            ".....oyhyo......",
-            "....oykyo.......",
-            "...oyhyo........",
-            "..oykyo.........",
-            ".oyhyo..........",
-            ".oyyo...........",
-            "..oo............",
-        ],
-        {"o": (120, 84, 30, 255), "y": (232, 196, 96, 255), "h": (248, 224, 140, 255), "k": (70, 50, 24, 255)},
-    ),
-    "drafting_compass": (
-        [
-            ".......kk.......",
-            "......kggk......",
-            "......kggk......",
-            ".....kswwsk.....",
-            ".....kswwsk.....",
-            "....ksw..wsk....",
-            "....ksk..ksk....",
-            "...ksw....wsk...",
-            "...ksk....ksk...",
-            "..ksw......wsk..",
-            "..ksk......ksk..",
-            ".ksw........wsk.",
-            ".ksk........kyk.",
-            ".kk..........yk.",
-            ".k...........p..",
-            "................",
-        ],
-        {"k": (54, 58, 68, 255), "s": (150, 156, 168, 255), "w": (214, 220, 230, 255),
-         "g": (212, 170, 60, 255), "y": (232, 196, 96, 255), "p": (40, 40, 44, 255)},
-    ),
-    "set_square": (
-        [
-            "................",
-            ".dd.............",
-            ".dtd............",
-            ".dttd...........",
-            ".dtttd..........",
-            ".dtlttd.........",
-            ".dtl.ttd........",
-            ".dtl..ttd.......",
-            ".dtl...ttd......",
-            ".dtl....ttd.....",
-            ".dtl.....ttd....",
-            ".dtllllllltdd...",
-            ".dtttttttttttd..",
-            ".dtmtmtmtmtmttd.",
-            ".dddddddddddddd.",
-            "................",
-        ],
-        {"d": (24, 110, 110, 255), "t": (70, 196, 190, 215), "l": (150, 232, 226, 235), "m": (20, 80, 84, 255)},
-    ),
-    "architect_pencil": (
-        [
-            "................",
-            "............pp..",
-            "...........prrp.",
-            "..........pmrrp.",
-            ".........oymmp..",
-            "........oyhyo...",
-            ".......oyhyo....",
-            "......oyhyo.....",
-            ".....oyhyo......",
-            "....oyhyo.......",
-            "...oyhyo........",
-            "..owyyo.........",
-            "..owwo..........",
-            ".kwwo...........",
-            ".kk.............",
-            "................",
-        ],
-        {"o": (130, 90, 20, 255), "y": (240, 190, 40, 255), "h": (252, 226, 110, 255), "w": (226, 190, 140, 255),
-         "k": (40, 40, 44, 255), "p": (150, 60, 80, 255), "r": (230, 120, 140, 255), "m": (170, 176, 186, 255)},
-    ),
-    "blueprint": (
-        [
-            "................",
-            ".dddddddddddddd.",
-            ".dbbbbbbbbbbbbd.",
-            ".dbwwwwwwbbbbbd.",
-            ".dbwbbbbwbbwbbd.",
-            ".dbwbbbbwbwbwbd.",
-            ".dbwbbbbwbbwbbd.",
-            ".dbwwbwwwbbbbbd.",
-            ".dbbbbbbbbbbbbd.",
-            ".dbwwwwwwwwwwbd.",
-            ".dbbbbbbbbbbbbd.",
-            ".dbwwwwbbwwwbbd.",
-            ".dbbbbbbbbbbbbd.",
-            ".dllllllllllllld",
-            ".ddddddddddddddd",
-            "................",
-        ],
-        {"d": (20, 50, 120, 255), "b": (40, 96, 190, 255), "w": (220, 236, 255, 255), "l": (90, 140, 220, 255)},
-    ),
-}
-
-
 VLAD_SKIN = (236, 186, 172)
 VLAD_SKIN_SHADE = (206, 154, 140)
 VLAD_HAIR = (56, 40, 30)
@@ -581,16 +461,12 @@ def icon():
 
 def main():
     os.makedirs(f"{OUT}/entity", exist_ok=True)
-    os.makedirs(f"{OUT}/item", exist_ok=True)
     base = kalabushkin()
     base.save(f"{OUT}/entity/kalabushkin.png")
     spirit(base).save(f"{OUT}/entity/kalabushkin_spirit.png")
     vlad_logutov().save(f"{OUT}/entity/vlad_logutov.png")
     assert len(ICON) == 32 and all(len(r) == 32 for r in ICON)
     icon().save(f"{OUT}/../icon.png")
-    for name, (rows, palette) in ITEMS.items():
-        assert len(rows) == 16 and all(len(r) == 16 for r in rows), name
-        item(rows, palette).save(f"{OUT}/item/{name}.png")
 
 
 if __name__ == "__main__":

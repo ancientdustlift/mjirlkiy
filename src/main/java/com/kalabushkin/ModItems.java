@@ -1,7 +1,7 @@
 package com.kalabushkin;
 
-import com.kalabushkin.item.ArchitectToolItem;
 import com.kalabushkin.item.CarpenterWeaponItem;
+import com.kalabushkin.item.ShatuniItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
@@ -20,37 +20,27 @@ public final class ModItems {
 	public static final Item VLAD_LOGUTOV_SPAWN_EGG = register("vlad_logutov_spawn_egg",
 			new SpawnEggItem(ModEntities.VLAD_LOGUTOV, 0x537C7B, 0x16161A, new Item.Settings()));
 
-	public static final Item ARCHITECT_RULER = tool("architect_ruler");
-	public static final Item DRAFTING_COMPASS = tool("drafting_compass");
-	public static final Item SET_SQUARE = tool("set_square");
-	public static final Item ARCHITECT_PENCIL = tool("architect_pencil");
-	public static final Item BLUEPRINT = tool("blueprint");
-
 	public static final Item CARPENTER_PLANE = register("carpenter_plane",
 			new CarpenterWeaponItem(CarpenterWeaponItem.Kind.PLANE, new Item.Settings()));
 	public static final Item WOODEN_MALLET = register("wooden_mallet",
 			new CarpenterWeaponItem(CarpenterWeaponItem.Kind.MALLET, new Item.Settings()));
 
+	public static final Item SHATUNI = register("shatuni", new ShatuniItem(new Item.Settings()));
+
 	public static final ItemGroup GROUP = Registry.register(Registries.ITEM_GROUP, Kalabushkin.id("main"),
 			FabricItemGroup.builder()
 					.displayName(Text.translatable("itemGroup.kalabushkin"))
-					.icon(() -> new ItemStack(DRAFTING_COMPASS))
+					.icon(() -> new ItemStack(SHATUNI))
 					.entries((context, entries) -> {
 						entries.add(KALABUSHKIN_SPAWN_EGG);
 						entries.add(VLAD_LOGUTOV_SPAWN_EGG);
-						entries.add(ARCHITECT_RULER);
-						entries.add(DRAFTING_COMPASS);
-						entries.add(SET_SQUARE);
-						entries.add(ARCHITECT_PENCIL);
-						entries.add(BLUEPRINT);
+						entries.add(SHATUNI);
+						entries.add(CARPENTER_PLANE);
+						entries.add(WOODEN_MALLET);
 					})
 					.build());
 
 	private ModItems() {
-	}
-
-	private static Item tool(String name) {
-		return register(name, new ArchitectToolItem(new Item.Settings().maxCount(1)));
 	}
 
 	private static Item register(String name, Item item) {
@@ -66,6 +56,7 @@ public final class ModItems {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
 			entries.add(CARPENTER_PLANE);
 			entries.add(WOODEN_MALLET);
+			entries.add(SHATUNI);
 		});
 	}
 }

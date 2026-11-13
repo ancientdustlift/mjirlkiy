@@ -29,25 +29,31 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
 
-/** Rides his bike around; on spotting a player he brakes, puts a foot down and asks his question. */
+/** Rides his bike around; on spotting a player he rides up, brakes, puts a foot down and asks his question. */
 public class VladLogutovEntity extends PathAwareEntity {
 	private static final TrackedData<Boolean> STOPPED =
 			DataTracker.registerData(VladLogutovEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final byte ASK_STATUS = 89;
 	// Long enough for the whole ask animation (4.5 s).
 	private static final int ASK_TICKS = 100;
-	private static final int ASK_COOLDOWN_TICKS = 400;
-	private static final double SIGHT_RANGE = 8.0;
-	private static final double GIVE_UP_RANGE = 16.0;
+	// Also applied when he gives up the chase, so he is not glued to the player.
+	private static final int ASK_COOLDOWN_TICKS = 300;
+	private static final int CHASE_TICKS = 300;
+	private static final double SIGHT_RANGE = 16.0;
+	private static final double ASK_RANGE = 3.0;
+	private static final double GIVE_UP_RANGE = 28.0;
+	private static final double CHASE_SPEED = 1.3;
 	private static final double SOLITUDE_RADIUS = 96.0;
 	private static final float STOP_STEP = 0.125f;
 
 	public final AnimationState idleAnimationState = new AnimationState();
 	public final AnimationState askAnimationState = new AnimationState();
 
+	// The player he is riding up to or, once askTicks is running, talking to.
+	private PlayerEntity target;
+	private int chaseTicks;
 	private int askTicks;
 	private int askCooldown;
-	private PlayerEntity asked;
 
 	// Client-side blend between the riding pose (0) and the foot-down pose (1).
 	private float stopProgress;
@@ -120,10 +126,17 @@ public class VladLogutovEntity extends PathAwareEntity {
 	@Override
 	protected void mobTick() {
 		super.mobTick();
-		if (askTicks > 0) {
-			askTicks--;
-			if (askTicks == 0 || asked == null || !asked.isAlive()
-					|| squaredDistanceTo(asked) > GIVE_UP_RANGE * GIVE_UP_RANGE) {
+		if (target != null) {
+			if (!target.isAlive() || target.isSpectator() || target.getWorld() != getWorld()
+					|| squaredDistanceTo(target) > GIVE_UP_RANGE * GIVE_UP_RANGE) {
+				rideOn();
+			} else if (askTicks > 0) {
+				if (--askTicks == 0) {
+					rideOn();
+				}
+			} else if (squaredDistanceTo(target) <= ASK_RANGE * ASK_RANGE && canSee(target)) {
+				ask();
+			} else if (++chaseTicks > CHASE_TICKS) {
 				rideOn();
 			}
 		} else if (askCooldown > 0) {
@@ -131,28 +144,30 @@ public class VladLogutovEntity extends PathAwareEntity {
 		} else if (age % 10 == 0) {
 			PlayerEntity player = getWorld().getClosestPlayer(this, SIGHT_RANGE);
 			if (player != null && canSee(player)) {
-				ask(player);
+				target = player;
+				chaseTicks = 0;
 			}
 		}
 	}
 
-	private void ask(PlayerEntity player) {
+	private void ask() {
 		askTicks = ASK_TICKS;
-		asked = player;
 		dataTracker.set(STOPPED, true);
 		getNavigation().stop();
 		getWorld().sendEntityStatus(this, ASK_STATUS);
 		// Bike bell.
 		playSound(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f, 1.8f);
-		player.sendMessage(Text.translatable("chat.type.text", getDisplayName(),
+		// Also shown above his head by the renderer while STOPPED is set.
+		target.sendMessage(Text.translatable("chat.type.text", getDisplayName(),
 				Text.translatable("entity.kalabushkin.vlad_logutov.ask")), false);
 	}
 
 	private void rideOn() {
+		target = null;
 		askTicks = 0;
-		asked = null;
 		askCooldown = ASK_COOLDOWN_TICKS;
 		dataTracker.set(STOPPED, false);
+		getNavigation().stop();
 	}
 
 	@Override
@@ -170,7 +185,7 @@ public class VladLogutovEntity extends PathAwareEntity {
 		return SoundEvents.ENTITY_PLAYER_DEATH;
 	}
 
-	/** Holds the bike still and keeps his eyes on the player while he asks. */
+	/** Rides up to the player he has spotted, then holds the bike still and keeps his eyes on them. */
 	private class AskGoal extends Goal {
 		AskGoal() {
 			setControls(EnumSet.of(Control.MOVE, Control.LOOK, Control.JUMP));
@@ -178,11 +193,11 @@ public class VladLogutovEntity extends PathAwareEntity {
 
 		@Override
 		public boolean canStart() {
-			return askTicks > 0 && asked != null;
+			return target != null;
 		}
 
 		@Override
-		public void start() {
+		public void stop() {
 			getNavigation().stop();
 		}
 
@@ -193,8 +208,14 @@ public class VladLogutovEntity extends PathAwareEntity {
 
 		@Override
 		public void tick() {
-			if (asked != null) {
-				getLookControl().lookAt(asked, 30.0f, 30.0f);
+			if (target == null) {
+				return;
+			}
+			getLookControl().lookAt(target, 30.0f, 30.0f);
+			if (askTicks > 0) {
+				getNavigation().stop();
+			} else if (chaseTicks % 10 == 0) {
+				getNavigation().startMovingTo(target, CHASE_SPEED);
 			}
 		}
 	}

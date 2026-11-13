@@ -12,8 +12,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Hand;
 
 public class KalabushkinClient implements ClientModInitializer {
+	private static final float SPIN_TICKS = 3.0f;
+
 	@Override
 	public void onInitializeClient() {
 		EntityModelLayerRegistry.registerModelLayer(KalabushkinModel.LAYER, KalabushkinModel::getTexturedModelData);
@@ -33,6 +36,17 @@ public class KalabushkinClient implements ClientModInitializer {
 		};
 		ModelPredicateProviderRegistry.register(ModItems.CARPENTER_PLANE, Kalabushkin.id("swing"), swing);
 		ModelPredicateProviderRegistry.register(ModItems.WOODEN_MALLET, Kalabushkin.id("swing"), swing);
+
+		// Half a turn every SPIN_TICKS while the Shatuni is being used; the sprite repeats after 180 degrees.
+		ClampedModelPredicateProvider spin = (stack, world, entity, seed) -> {
+			if (entity == null || !entity.isUsingItem() || entity.getActiveHand() != Hand.MAIN_HAND
+					|| entity.getMainHandStack() != stack) {
+				return 0.0f;
+			}
+			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true);
+			return (entity.age + tickDelta) / SPIN_TICKS % 1.0f;
+		};
+		ModelPredicateProviderRegistry.register(ModItems.SHATUNI, Kalabushkin.id("spin"), spin);
 
 		ClientPlayNetworking.registerGlobalReceiver(FistBumpPayload.ID, (payload, context) -> {
 			Entity entity = context.client().world == null ? null : context.client().world.getEntityById(payload.entityId());

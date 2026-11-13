@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Generates textures and 3D item models (including swing animation frames) for the carpenter's
-weapons. Run from the repository root: python3 tools/generate_weapons.py
+"""Generates textures and item models (including swing and spin animation frames) for the carpenter's
+weapons and the Shatuni. Run from the repository root: python3 tools/generate_weapons.py
 
 The swing animation is a strip of models picked by the "kalabushkin:swing" item predicate."""
 import json
+import math
 import os
 import random
 
@@ -191,6 +192,64 @@ def write_models(name, elements, display):
         json.dump(base, f, separators=(",", ":"))
 
 
+SPIN_FRAMES = 8
+
+
+def shatuni_texture():
+    """Crankset seen side-on, 32x32: toothed chainring on a four-arm spider and two opposite crank arms.
+    It looks the same after half a turn, so the spin animation only has to cover 180 degrees."""
+    img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    rng = random.Random(23)
+    c = 15.5
+    arm = (math.cos(math.radians(45)), math.sin(math.radians(45)))
+    for y in range(32):
+        for x in range(32):
+            dx, dy = x - c, y - c
+            dist = math.hypot(dx, dy)
+            angle = math.atan2(dy, dx)
+            along = dx * arm[0] + dy * arm[1]
+            across = abs(-dx * arm[1] + dy * arm[0])
+            tooth = math.cos(16 * angle) > 0.15
+            color = None
+            if 8.0 <= dist <= (12.2 if tooth else 10.2):
+                color = (74, 78, 86) if dist > 10.2 else (46, 48, 54)
+            elif 2.5 < dist < 8.0 and min(abs(dx), abs(dy)) < 0.9:
+                color = (58, 60, 66)  # spider
+            if across < 1.6 and abs(along) <= 19.5:
+                color = (30, 30, 34) if across > 0.6 else (64, 66, 74)
+                if abs(along) > 17.5 and across < 0.6:
+                    color = (150, 152, 158)  # pedal thread
+            if dist <= 3.0:
+                color = (96, 98, 106) if dist > 1.3 else (28, 28, 32)
+            if color:
+                light = 10 if dx + dy < 0 else -6
+                j = rng.randint(-4, 4) + light
+                img.putpixel((x, y), tuple(max(0, min(255, v + j)) for v in color) + (255,))
+    return img
+
+
+def write_shatuni_models():
+    """Flat sprite model; the "kalabushkin:spin" predicate picks a frame turned about the sprite's centre."""
+    def model(angle):
+        return {"parent": "minecraft:item/handheld", "textures": {"layer0": "kalabushkin:item/shatuni"},
+                "display": {
+                    "thirdperson_righthand": {"rotation": [0, -90, r(55 + angle)], "translation": [0, 5, 2.5], "scale": [1.2, 1.2, 1.2]},
+                    "thirdperson_lefthand": {"rotation": [0, 90, r(-55 - angle)], "translation": [0, 5, 2.5], "scale": [1.2, 1.2, 1.2]},
+                    "firstperson_righthand": {"rotation": [0, -90, r(25 + angle)], "translation": [1.13, 3.2, 1.13], "scale": [0.85, 0.85, 0.85]},
+                    "firstperson_lefthand": {"rotation": [0, 90, r(-25 - angle)], "translation": [1.13, 3.2, 1.13], "scale": [0.85, 0.85, 0.85]},
+                }}
+
+    base = model(0.0)
+    base["overrides"] = []
+    for i in range(1, SPIN_FRAMES):
+        frame = f"shatuni_spin_{i}"
+        base["overrides"].append({"predicate": {"kalabushkin:spin": r(i / SPIN_FRAMES)}, "model": f"kalabushkin:item/{frame}"})
+        with open(f"{ASSETS}/models/item/{frame}.json", "w") as f:
+            json.dump(model(180.0 * i / SPIN_FRAMES), f, separators=(",", ":"))
+    with open(f"{ASSETS}/models/item/shatuni.json", "w") as f:
+        json.dump(base, f, separators=(",", ":"))
+
+
 def main():
     os.makedirs(f"{ASSETS}/textures/item", exist_ok=True)
     os.makedirs(f"{ASSETS}/models/item", exist_ok=True)
@@ -198,6 +257,8 @@ def main():
     plane_texture().save(f"{ASSETS}/textures/item/carpenter_plane.png")
     write_models("wooden_mallet", mallet_elements, mallet_display)
     write_models("carpenter_plane", plane_elements, plane_display)
+    shatuni_texture().save(f"{ASSETS}/textures/item/shatuni.png")
+    write_shatuni_models()
 
 
 if __name__ == "__main__":
