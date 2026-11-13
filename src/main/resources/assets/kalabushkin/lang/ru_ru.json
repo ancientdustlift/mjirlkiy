@@ -1,0 +1,21 @@
+{
+	"entity.kalabushkin.kalabushkin": "Калабушкин",
+	"entity.kalabushkin.kalabushkin_spirit": "Дух Калабушкина",
+	"item.kalabushkin.kalabushkin_spawn_egg": "Яйцо призыва Калабушкина",
+	"item.kalabushkin.architect_ruler": "Линейка архитектора",
+	"item.kalabushkin.architect_ruler.tooltip": "Семь раз отмерь — один раз построй",
+	"item.kalabushkin.drafting_compass": "Циркуль",
+	"item.kalabushkin.drafting_compass.tooltip": "Для идеальных кругов в квадратном мире",
+	"item.kalabushkin.set_square": "Угольник",
+	"item.kalabushkin.set_square.tooltip": "Держит каждый угол ровно в девяносто градусов",
+	"item.kalabushkin.architect_pencil": "Карандаш архитектора",
+	"item.kalabushkin.architect_pencil.tooltip": "Всегда заточен",
+	"item.kalabushkin.blueprint": "Чертёж",
+	"item.kalabushkin.blueprint.tooltip": "Незаконченный проект Калабушкина",
+	"itemGroup.kalabushkin": "Калабушкин",
+	"message.kalabushkin.haunted": "Дух Калабушкина теперь следует за вами",
+	"item.kalabushkin.carpenter_plane": "Рубанок",
+	"item.kalabushkin.carpenter_plane.tooltip": "Снимает стружку с врагов",
+	"item.kalabushkin.wooden_mallet": "Киянка",
+	"item.kalabushkin.wooden_mallet.tooltip": "Достаточно одного хорошего удара"
+}

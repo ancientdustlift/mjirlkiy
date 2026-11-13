@@ -1,0 +1,21 @@
+{
+	"entity.kalabushkin.kalabushkin": "Kalabushkin",
+	"entity.kalabushkin.kalabushkin_spirit": "Spirit of Kalabushkin",
+	"item.kalabushkin.kalabushkin_spawn_egg": "Kalabushkin Spawn Egg",
+	"item.kalabushkin.architect_ruler": "Architect's Ruler",
+	"item.kalabushkin.architect_ruler.tooltip": "Measure twice, build once",
+	"item.kalabushkin.drafting_compass": "Drafting Compass",
+	"item.kalabushkin.drafting_compass.tooltip": "For perfect circles in a square world",
+	"item.kalabushkin.set_square": "Set Square",
+	"item.kalabushkin.set_square.tooltip": "Keeps every corner at ninety degrees",
+	"item.kalabushkin.architect_pencil": "Architect's Pencil",
+	"item.kalabushkin.architect_pencil.tooltip": "Always sharp",
+	"item.kalabushkin.blueprint": "Blueprint",
+	"item.kalabushkin.blueprint.tooltip": "An unfinished design by Kalabushkin",
+	"itemGroup.kalabushkin": "Kalabushkin",
+	"message.kalabushkin.haunted": "The spirit of Kalabushkin now follows you",
+	"item.kalabushkin.carpenter_plane": "Carpenter's Plane",
+	"item.kalabushkin.carpenter_plane.tooltip": "Shaves the enemy down to size",
+	"item.kalabushkin.wooden_mallet": "Wooden Mallet",
+	"item.kalabushkin.wooden_mallet.tooltip": "One good knock is enough"
+}

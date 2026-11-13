@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "kalabushkin",
+	"version": "${version}",
+	"name": "Kalabushkin",
+	"description": "Adds Kalabushkin: a friendly human mob that fist-bumps you, drops a set of architect's tools and leaves a spirit that follows you.",
+	"authors": ["ancientdustlift"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.kalabushkin.Kalabushkin"],
+		"client": ["com.kalabushkin.client.KalabushkinClient"]
+	},
+	"mixins": [
+		"kalabushkin.mixins.json",
+		{ "config": "kalabushkin.client.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
