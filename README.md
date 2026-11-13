@@ -3,7 +3,7 @@
 A WorldBox-style god mode for Minecraft: top-down view, bombs, elements, kingdoms, bosses, world laws and terraforming.
 
 - Minecraft 1.21.1, Fabric Loader 0.16.14, Fabric API, Java 21
-- Version 3.2.0, MIT licensed (per `fabric.mod.json`)
+- Version 3.3.0, MIT licensed (per `fabric.mod.json`)
 
 ## Building
 
@@ -11,7 +11,7 @@ A WorldBox-style god mode for Minecraft: top-down view, bombs, elements, kingdom
 ./gradlew build
 ```
 
-The mod JAR is written to `build/libs/godbox-3.2.0.jar`. Use `./gradlew runClient` or `./gradlew runServer` to start a development instance.
+The mod JAR is written to `build/libs/godbox-3.3.0.jar`. Use `./gradlew runClient` or `./gradlew runServer` to start a development instance.
 
 ## About this source tree
 

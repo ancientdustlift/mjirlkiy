@@ -9,13 +9,18 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GodBox implements ModInitializer {
    public static final String MOD_ID = "godbox";
-   public static final String VERSION = "3.2.0";
+   // Read from fabric.mod.json, which the build fills in from gradle.properties, so the number lives in one place.
+   public static final String VERSION = FabricLoader.getInstance()
+      .getModContainer("godbox")
+      .map(c -> c.getMetadata().getVersion().getFriendlyString())
+      .orElse("dev");
    public static final Logger LOG = LoggerFactory.getLogger("godbox");
 
    public void onInitialize() {
@@ -47,7 +52,7 @@ public class GodBox implements ModInitializer {
       Chronicle.init();
       Inspect.init();
       Plague.init();
-      LOG.info("GodBox {} loaded: {} systems, {} powers. Press G in game to become a god", "3.2.0", Systems.all().size(), Power.values().length);
+      LOG.info("GodBox {} loaded: {} systems, {} powers. Press G in game to become a god", VERSION, Systems.all().size(), Power.values().length);
    }
 
    private static void registerNetwork() {
