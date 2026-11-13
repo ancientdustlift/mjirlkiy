@@ -13,5 +13,8 @@
 	"item.kalabushkin.wooden_mallet.tooltip": "One good knock is enough",
 	"item.kalabushkin.shatuni": "Shatuni",
 	"item.kalabushkin.shatuni.tooltip": "Hold with both hands and spin like a circular saw",
-	"item.kalabushkin.shatuni.two_handed": "Shatuni need both hands: empty your off hand"
+	"item.kalabushkin.shatuni.two_handed": "Shatuni need both hands: empty your off hand",
+	"entity.kalabushkin.little_koch": "Little Koch",
+	"item.kalabushkin.little_koch_spawn_egg": "Little Koch Spawn Egg",
+	"item.kalabushkin.fat": "Fat"
 }

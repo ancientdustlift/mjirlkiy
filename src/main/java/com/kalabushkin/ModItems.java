@@ -4,6 +4,7 @@ import com.kalabushkin.item.CarpenterWeaponItem;
 import com.kalabushkin.item.ShatuniItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
@@ -27,6 +28,11 @@ public final class ModItems {
 
 	public static final Item SHATUNI = register("shatuni", new ShatuniItem(new Item.Settings()));
 
+	public static final Item LITTLE_KOCH_SPAWN_EGG = register("little_koch_spawn_egg",
+			new SpawnEggItem(ModEntities.LITTLE_KOCH, 0xC42428, 0x18181C, new Item.Settings()));
+	public static final Item FAT = register("fat", new Item(new Item.Settings()
+			.food(new FoodComponent.Builder().nutrition(4).saturationModifier(0.8f).build())));
+
 	public static final ItemGroup GROUP = Registry.register(Registries.ITEM_GROUP, Kalabushkin.id("main"),
 			FabricItemGroup.builder()
 					.displayName(Text.translatable("itemGroup.kalabushkin"))
@@ -34,9 +40,11 @@ public final class ModItems {
 					.entries((context, entries) -> {
 						entries.add(KALABUSHKIN_SPAWN_EGG);
 						entries.add(VLAD_LOGUTOV_SPAWN_EGG);
+						entries.add(LITTLE_KOCH_SPAWN_EGG);
 						entries.add(SHATUNI);
 						entries.add(CARPENTER_PLANE);
 						entries.add(WOODEN_MALLET);
+						entries.add(FAT);
 					})
 					.build());
 
@@ -52,7 +60,9 @@ public final class ModItems {
 				.register(entries -> {
 					entries.add(KALABUSHKIN_SPAWN_EGG);
 					entries.add(VLAD_LOGUTOV_SPAWN_EGG);
+					entries.add(LITTLE_KOCH_SPAWN_EGG);
 				});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(entries -> entries.add(FAT));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
 			entries.add(CARPENTER_PLANE);
 			entries.add(WOODEN_MALLET);

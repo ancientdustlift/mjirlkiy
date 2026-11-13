@@ -2,6 +2,7 @@ package com.kalabushkin;
 
 import com.kalabushkin.entity.KalabushkinEntity;
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
+import com.kalabushkin.entity.LittleKochEntity;
 import com.kalabushkin.entity.VladLogutovEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -48,6 +49,16 @@ public final class ModEntities {
 					.maxTrackingRange(10)
 					.build());
 
+	// No natural spawn of his own: he arrives together with Vlad Logutov.
+	public static final EntityType<LittleKochEntity> LITTLE_KOCH = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("little_koch"),
+			EntityType.Builder.create(LittleKochEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.8f, 1.4f)
+					.eyeHeight(1.15f)
+					.maxTrackingRange(10)
+					.build());
+
 	private ModEntities() {
 	}
 
@@ -56,6 +67,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(SPIRIT, KalabushkinSpiritEntity.createAttributes());
 
 		FabricDefaultAttributeRegistry.register(VLAD_LOGUTOV, VladLogutovEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(LITTLE_KOCH, LittleKochEntity.createAttributes());
 
 		SpawnRestriction.register(KALABUSHKIN, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, KalabushkinEntity::canSpawnHere);

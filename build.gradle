@@ -56,6 +56,6 @@ sourceSets {
 tasks.register('dumpModels', JavaExec) {
 	classpath = sourceSets.preview.runtimeClasspath
 	mainClass = 'ModelDump'
-	args layout.buildDirectory.file('preview/vlad_logutov.txt').get().asFile
+	args layout.buildDirectory.dir('preview').get().asFile
 	doFirst { layout.buildDirectory.dir('preview').get().asFile.mkdirs() }
 }

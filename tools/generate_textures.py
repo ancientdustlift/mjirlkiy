@@ -459,6 +459,133 @@ def icon():
     return img.resize((128, 128), Image.NEAREST)
 
 
+KOCH_SKIN = (240, 198, 178)
+KOCH_SKIN_SHADE = (214, 166, 148)
+KOCH_HAIR = (146, 112, 88)
+KOCH_HAIR_DARK = (120, 90, 70)
+TEE_RED = (196, 36, 40)
+TEE_RED_DARK = (150, 24, 30)
+TEE_PRINT = (112, 104, 108)
+TEE_PRINT_DARK = (78, 72, 78)
+# Hand-drawn face: cropped light-brown hair, round cheeks, wide smile.
+KOCH_FACE = [
+    "hhhhhhhhhhhhhhhh",
+    "hhHhhhhhhhhhhHhh",
+    "hhhhhhhhhhhhhhhh",
+    "hhsssllllllssshh",
+    "hssssssssssssssh",
+    "ssbbbbssssbbbbss",
+    "sssweessssweesss",
+    "ssssssssssssssss",
+    "scccsssnnssscccs",
+    "sccccsnssnsccccs",
+    "sscccsssssscccss",
+    "ssmssssssssssmss",
+    "sssmttttttttmsss",
+    "ssssmmmmmmmmssss",
+    "jssssssssssssssj",
+    "jjjssssssssssjjj",
+]
+KOCH_FACE_PALETTE = {
+    "h": KOCH_HAIR, "H": KOCH_HAIR_DARK, "s": KOCH_SKIN, "l": (250, 216, 200), "c": (240, 172, 160),
+    "j": KOCH_SKIN_SHADE, "b": (124, 92, 72), "w": (240, 238, 234), "e": (96, 124, 150),
+    "n": (218, 166, 150), "m": (176, 96, 92), "t": (246, 244, 240),
+}
+
+
+def little_koch():
+    c = Canvas(size=64, seed=31)
+    head = faces(0, 0, 8, 8, 8)
+    c.box(head, KOCH_SKIN, 4)
+    c.fill(head["top"], KOCH_HAIR, 6)
+    for side in ("right", "left"):
+        c.fill(head[side], KOCH_HAIR, 6, rows=range(3))
+        ear_x = 4 if side == "right" else 3
+        c.px(head[side], ear_x, 4, KOCH_SKIN_SHADE)
+        c.px(head[side], ear_x, 5, KOCH_SKIN_SHADE)
+    c.fill(head["back"], KOCH_HAIR, 6, rows=range(4))
+    c.fill(head["bottom"], KOCH_SKIN_SHADE, 3)
+    # Outer layer: a thin cap of cropped hair.
+    cap = faces(32, 0, 8, 8, 8)
+    c.fill(cap["top"], KOCH_HAIR, 8)
+    for side in ("right", "left"):
+        c.fill(cap[side], KOCH_HAIR, 8, rows=range(2))
+    c.fill(cap["back"], KOCH_HAIR, 8, rows=range(3))
+    c.fill(cap["front"], KOCH_HAIR, 8, rows=[0])
+
+    body = faces(0, 16, 12, 8, 6)
+    c.box(body, TEE_RED, 5)
+    c.fill(body["front"], TEE_RED_DARK, 3, rows=[0], cols=range(4, 8))  # collar
+    c.fill(body["bottom"], BLACK_TROUSERS, 3)
+    for name in ("front", "back", "left", "right"):
+        c.fill(body[name], TEE_RED_DARK, 4, rows=[7])  # hem
+    belly = faces(36, 16, 10, 5, 2)
+    c.box(belly, TEE_RED, 5)
+    # Grey chest print, on the belly because it covers that part of the torso.
+    c.fill(belly["front"], TEE_PRINT, 6, rows=[0, 1], cols=range(2, 8))
+    for x in (3, 5, 6):
+        c.px(belly["front"], x, 1, TEE_PRINT_DARK)
+    c.fill(belly["front"], TEE_RED_DARK, 4, rows=[4])
+    c.fill(belly["bottom"], TEE_RED_DARK, 3)
+
+    for u in (0, 16):
+        arm = faces(u, 32, 4, 9, 4)
+        c.box(arm, KOCH_SKIN, 4)
+        for name in ("front", "back", "left", "right"):
+            c.fill(arm[name], TEE_RED, 5, rows=range(3))
+            c.fill(arm[name], TEE_RED_DARK, 4, rows=[3])  # sleeve hem
+            c.fill(arm[name], KOCH_SKIN_SHADE, 3, rows=[8])
+        c.fill(arm["top"], TEE_RED, 5)
+        c.fill(arm["bottom"], KOCH_SKIN_SHADE, 3)
+    for u, v in ((32, 32), (0, 48)):
+        leg = faces(u, v, 5, 6, 5)
+        c.box(leg, BLACK_TROUSERS, 3)
+        for name in ("front", "back", "left", "right"):
+            c.fill(leg[name], SNEAKER, 3, rows=[4])
+            c.fill(leg[name], (18, 18, 20), 2, rows=[5])
+        c.fill(leg["bottom"], (18, 18, 20), 2)
+
+    img = c.img.resize((128, 128), Image.NEAREST)
+    front = head["front"]
+    assert len(KOCH_FACE) == 16 and all(len(r) == 16 for r in KOCH_FACE)
+    for y, row in enumerate(KOCH_FACE):
+        for x, key in enumerate(row):
+            img.putpixel((front[0] * 2 + x, front[1] * 2 + y), KOCH_FACE_PALETTE[key] + (255,))
+    return img
+
+
+FAT = [
+    "................",
+    "................",
+    "....oooooo......",
+    "..oofffffoooo...",
+    ".offlllfffpppo..",
+    ".offlffffppfffo.",
+    "offfffppppffffo.",
+    "offppppffffflfo.",
+    "oppffffffflllfo.",
+    "offfffffpppfffo.",
+    ".offfppppfffffo.",
+    ".ooffffffffffo..",
+    "...oooffffooo...",
+    "......oooo......",
+    "................",
+    "................",
+]
+FAT_PALETTE = {"o": (198, 172, 142), "f": (250, 240, 220), "p": (236, 170, 160), "l": (255, 252, 244)}
+
+
+def fat():
+    """A slab of pork fat with thin streaks of meat."""
+    assert len(FAT) == 16 and all(len(r) == 16 for r in FAT)
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y, row in enumerate(FAT):
+        for x, key in enumerate(row):
+            if key != ".":
+                img.putpixel((x, y), FAT_PALETTE[key] + (255,))
+    return img
+
+
 def main():
     os.makedirs(f"{OUT}/entity", exist_ok=True)
     base = kalabushkin()
@@ -467,6 +594,9 @@ def main():
     vlad_logutov().save(f"{OUT}/entity/vlad_logutov.png")
     assert len(ICON) == 32 and all(len(r) == 32 for r in ICON)
     icon().save(f"{OUT}/../icon.png")
+    little_koch().save(f"{OUT}/entity/little_koch.png")
+    os.makedirs(f"{OUT}/item", exist_ok=True)
+    fat().save(f"{OUT}/item/fat.png")
 
 
 if __name__ == "__main__":

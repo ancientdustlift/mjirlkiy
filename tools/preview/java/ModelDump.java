@@ -1,26 +1,46 @@
 import java.io.PrintWriter;
 import java.util.Locale;
 
+import com.kalabushkin.client.LittleKochAnimations;
+import com.kalabushkin.client.LittleKochModel;
 import com.kalabushkin.client.VladLogutovAnimations;
 import com.kalabushkin.client.VladLogutovModel;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.animation.AnimationHelper;
+import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector3f;
 
 /**
- * Poses the Vlad Logutov model with the real Minecraft model classes and writes its quads to a text
- * file, so tools/preview/render_preview.py can draw it without starting the game.
+ * Poses the Vlad Logutov and Little Koch models with the real Minecraft model classes and writes their quads to text
+ * files, so tools/preview/render_preview.py can draw it without starting the game.
  * Line format: pose name, then one "x y z u v nx ny nz" line per vertex, four per quad.
  */
 public final class ModelDump {
 	private static PrintWriter out;
 
 	public static void main(String[] args) throws Exception {
+		LittleKochModel koch = new LittleKochModel(LittleKochModel.getTexturedModelData().createModel());
+		try (PrintWriter writer = new PrintWriter(args[0] + "/little_koch.txt")) {
+			out = writer;
+			float[] idleTimes = {0.0f, 1.25f};
+			for (float time : idleTimes) {
+				koch.getPart().traverse().forEach(ModelPart::resetTransform);
+				animate(koch, LittleKochAnimations.IDLE, (long) (time * 1000.0f), 1.0f);
+				dump("idle" + time, koch);
+			}
+			float[] walkTimes = {0.0f, 0.25f, 0.5f};
+			for (float time : walkTimes) {
+				koch.getPart().traverse().forEach(ModelPart::resetTransform);
+				animate(koch, LittleKochAnimations.WADDLE, (long) (time * 1000.0f), 1.0f);
+				dump("waddle" + time, koch);
+			}
+		}
+
 		VladLogutovModel model = new VladLogutovModel(VladLogutovModel.getTexturedModelData().createModel());
-		try (PrintWriter writer = new PrintWriter(args[0])) {
+		try (PrintWriter writer = new PrintWriter(args[0] + "/vlad_logutov.txt")) {
 			out = writer;
 			for (int i = 0; i < 4; i++) {
 				float limbAngle = 3.0f + i * 2.45f;
@@ -39,11 +59,11 @@ public final class ModelDump {
 		}
 	}
 
-	private static void animate(VladLogutovModel model, Animation animation, long timeMs, float scale) {
+	private static void animate(SinglePartEntityModel<?> model, Animation animation, long timeMs, float scale) {
 		AnimationHelper.animate(model, animation, timeMs, scale, new Vector3f());
 	}
 
-	private static void dump(String name, VladLogutovModel model) {
+	private static void dump(String name, SinglePartEntityModel<?> model) {
 		out.println("pose " + name);
 		model.getPart().render(new MatrixStack(), new VertexConsumer() {
 			@Override

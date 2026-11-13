@@ -13,5 +13,8 @@
 	"item.kalabushkin.wooden_mallet.tooltip": "Достаточно одного хорошего удара",
 	"item.kalabushkin.shatuni": "Шатуны",
 	"item.kalabushkin.shatuni.tooltip": "Возьми двумя руками и крути как циркулярную пилу",
-	"item.kalabushkin.shatuni.two_handed": "Шатунам нужны обе руки: освободите вторую"
+	"item.kalabushkin.shatuni.two_handed": "Шатунам нужны обе руки: освободите вторую",
+	"entity.kalabushkin.little_koch": "Маленький Кох",
+	"item.kalabushkin.little_koch_spawn_egg": "Яйцо призыва Маленького Коха",
+	"item.kalabushkin.fat": "Жир"
 }

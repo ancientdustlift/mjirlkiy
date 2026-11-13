@@ -1,7 +1,9 @@
 package com.kalabushkin.entity;
 
+import com.kalabushkin.ModEntities;
 import java.util.EnumSet;
 import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
@@ -26,8 +28,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 /** Rides his bike around; on spotting a player he rides up, brakes, puts a foot down and asks his question. */
 public class VladLogutovEntity extends PathAwareEntity {
@@ -79,6 +83,21 @@ public class VladLogutovEntity extends PathAwareEntity {
 		}
 		return world.getEntitiesByClass(VladLogutovEntity.class, new Box(pos).expand(SOLITUDE_RADIUS), e -> true)
 				.isEmpty();
+	}
+
+	/** Little Koch comes along whenever Vlad appears in the world on his own or from a spawn egg. */
+	@Override
+	public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason,
+			@Nullable EntityData entityData) {
+		if (spawnReason == SpawnReason.NATURAL || spawnReason == SpawnReason.CHUNK_GENERATION
+				|| spawnReason == SpawnReason.SPAWN_EGG) {
+			LittleKochEntity koch = ModEntities.LITTLE_KOCH.create(world.toServerWorld());
+			if (koch != null) {
+				koch.refreshPositionAndAngles(getX(), getY(), getZ(), getYaw(), 0.0f);
+				world.spawnEntityAndPassengers(koch);
+			}
+		}
+		return super.initialize(world, difficulty, spawnReason, entityData);
 	}
 
 	@Override

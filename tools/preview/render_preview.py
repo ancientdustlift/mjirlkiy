@@ -5,12 +5,13 @@ Usage: ./gradlew dumpModels && python3 tools/preview/render_preview.py build/pre
 Needs Pillow and numpy. Software rasteriser with a z-buffer; alpha below 0.1 is cut out like in game.
 """
 import math
+import os
 import sys
 
 import numpy as np
 from PIL import Image, ImageDraw
 
-TEXTURE = "src/main/resources/assets/kalabushkin/textures/entity/vlad_logutov.png"
+TEXTURES = "src/main/resources/assets/kalabushkin/textures/entity"
 SIZE = 360
 SCALE = 130  # pixels per block
 VIEWS = [("side", -90, 8), ("front 3/4", 145, 15), ("back 3/4", -35, 15)]
@@ -73,7 +74,9 @@ def render(quads, tex, yaw, pitch):
 
 def main():
     poses = load(sys.argv[1])
-    tex = np.array(Image.open(TEXTURE).convert("RGBA"))
+    # The dump is named after the entity, and so is its texture.
+    name = os.path.splitext(os.path.basename(sys.argv[1]))[0]
+    tex = np.array(Image.open(f"{TEXTURES}/{name}.png").convert("RGBA"))
     sheet = Image.new("RGB", (SIZE * len(VIEWS), SIZE * len(poses)))
     draw = ImageDraw.Draw(sheet)
     for row, (name, quads) in enumerate(poses):
