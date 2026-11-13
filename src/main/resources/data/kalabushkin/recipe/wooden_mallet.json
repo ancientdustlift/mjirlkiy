@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		"PLP",
+		" S ",
+		" S "
+	],
+	"key": {
+		"P": {
+			"tag": "minecraft:planks"
+		},
+		"L": {
+			"tag": "minecraft:logs"
+		},
+		"S": {
+			"item": "minecraft:stick"
+		}
+	},
+	"result": {
+		"id": "kalabushkin:wooden_mallet",
+		"count": 1
+	}
+}

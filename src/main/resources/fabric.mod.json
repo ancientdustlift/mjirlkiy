@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "kalabushkin",
+	"version": "${version}",
+	"name": "Legends of Seltso",
+	"description": "The legends of Seltso as Minecraft mobs. Kalabushkin fist-bumps you, drops a carpenter's plane or mallet and leaves a spirit that follows you. Vlad Logutov rides his mountain bike up to you to ask a question and drops the Shatuni, a two-handed crankset you spin like a circular saw. Little Koch tags along with Vlad and drops fat. Vasily shambles around like a zombie, shakes your hand and hands out snus, vapes and cigarettes that leave you weak, sick and tripping. Barsik is a fat, invulnerable cat who hides from everyone and parachutes down from any fall. Alexey Srpava strolls with silent Rita, pays her compliments and drops a phone in a diamond case.",
+	"icon": "assets/kalabushkin/icon.png",
+	"authors": ["ancientdustlift"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.kalabushkin.Kalabushkin"],
+		"client": ["com.kalabushkin.client.KalabushkinClient"]
+	},
+	"mixins": [
+		"kalabushkin.mixins.json",
+		{ "config": "kalabushkin.client.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
