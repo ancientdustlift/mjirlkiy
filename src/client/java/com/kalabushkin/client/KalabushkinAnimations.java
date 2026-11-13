@@ -53,29 +53,29 @@ public final class KalabushkinAnimations {
 	private KalabushkinAnimations() {
 	}
 
-	private static Transformation rotate(Keyframe... keyframes) {
+	static Transformation rotate(Keyframe... keyframes) {
 		return new Transformation(Transformation.Targets.ROTATE, keyframes);
 	}
 
-	private static Transformation translate(Keyframe... keyframes) {
+	static Transformation translate(Keyframe... keyframes) {
 		return new Transformation(Transformation.Targets.TRANSLATE, keyframes);
 	}
 
-	private static Transformation scale(Keyframe... keyframes) {
+	static Transformation scale(Keyframe... keyframes) {
 		return new Transformation(Transformation.Targets.SCALE, keyframes);
 	}
 
 	/** Rotation keyframe, degrees. */
-	private static Keyframe k(float time, float x, float y, float z) {
+	static Keyframe k(float time, float x, float y, float z) {
 		return new Keyframe(time, AnimationHelper.createRotationalVector(x, y, z), Transformation.Interpolations.CUBIC);
 	}
 
 	/** Translation keyframe, model pixels, +y up. */
-	private static Keyframe t(float time, float x, float y, float z) {
+	static Keyframe t(float time, float x, float y, float z) {
 		return new Keyframe(time, AnimationHelper.createTranslationalVector(x, y, z), Transformation.Interpolations.CUBIC);
 	}
 
-	private static Keyframe s(float time, float x, float y, float z) {
+	static Keyframe s(float time, float x, float y, float z) {
 		return new Keyframe(time, AnimationHelper.createScalingVector(x, y, z), Transformation.Interpolations.CUBIC);
 	}
 }

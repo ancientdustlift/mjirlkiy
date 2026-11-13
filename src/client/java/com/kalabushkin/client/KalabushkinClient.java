@@ -18,8 +18,10 @@ public class KalabushkinClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityModelLayerRegistry.registerModelLayer(KalabushkinModel.LAYER, KalabushkinModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(KalabushkinSpiritModel.LAYER, KalabushkinSpiritModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(VladLogutovModel.LAYER, VladLogutovModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.KALABUSHKIN, KalabushkinRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SPIRIT, KalabushkinSpiritRenderer::new);
+		EntityRendererRegistry.register(ModEntities.VLAD_LOGUTOV, VladLogutovRenderer::new);
 
 		// Drives the weapons' swing animation: item model overrides pick a frame from this value.
 		ClampedModelPredicateProvider swing = (stack, world, entity, seed) -> {

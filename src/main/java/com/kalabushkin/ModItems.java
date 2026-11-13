@@ -17,6 +17,9 @@ public final class ModItems {
 	public static final Item KALABUSHKIN_SPAWN_EGG = register("kalabushkin_spawn_egg",
 			new SpawnEggItem(ModEntities.KALABUSHKIN, 0x84223A, 0x2C86C4, new Item.Settings()));
 
+	public static final Item VLAD_LOGUTOV_SPAWN_EGG = register("vlad_logutov_spawn_egg",
+			new SpawnEggItem(ModEntities.VLAD_LOGUTOV, 0x537C7B, 0x16161A, new Item.Settings()));
+
 	public static final Item ARCHITECT_RULER = tool("architect_ruler");
 	public static final Item DRAFTING_COMPASS = tool("drafting_compass");
 	public static final Item SET_SQUARE = tool("set_square");
@@ -34,6 +37,7 @@ public final class ModItems {
 					.icon(() -> new ItemStack(DRAFTING_COMPASS))
 					.entries((context, entries) -> {
 						entries.add(KALABUSHKIN_SPAWN_EGG);
+						entries.add(VLAD_LOGUTOV_SPAWN_EGG);
 						entries.add(ARCHITECT_RULER);
 						entries.add(DRAFTING_COMPASS);
 						entries.add(SET_SQUARE);
@@ -55,7 +59,10 @@ public final class ModItems {
 
 	public static void init() {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS)
-				.register(entries -> entries.add(KALABUSHKIN_SPAWN_EGG));
+				.register(entries -> {
+					entries.add(KALABUSHKIN_SPAWN_EGG);
+					entries.add(VLAD_LOGUTOV_SPAWN_EGG);
+				});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
 			entries.add(CARPENTER_PLANE);
 			entries.add(WOODEN_MALLET);

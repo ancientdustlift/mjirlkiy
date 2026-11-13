@@ -343,12 +343,239 @@ ITEMS = {
 }
 
 
+VLAD_SKIN = (234, 192, 168)
+VLAD_SKIN_SHADE = (212, 164, 142)
+VLAD_HAIR = (62, 46, 38)
+VLAD_HAIR_DARK = (44, 32, 28)
+JACKET = (84, 124, 122)
+JACKET_DARK = (60, 94, 94)
+HOOD = (30, 34, 42)
+TEE = (22, 24, 30)
+BLACK_TROUSERS = (26, 26, 30)
+SNEAKER = (50, 50, 54)
+SOLE = (206, 206, 204)
+FRAME = (24, 26, 28)
+DECAL = (236, 236, 232)
+TYRE = (20, 20, 22)
+KNOB = (48, 48, 50)
+SPOKE = (156, 158, 162)
+GRIP = (60, 60, 64)
+
+
+def paint_vlad_head(c):
+    f = faces(0, 0, 8, 8, 8)
+    c.box(f, VLAD_SKIN, 4)
+    # Short dark hair, cropped at the sides.
+    c.fill(f["top"], VLAD_HAIR, 6)
+    for side, front_col in (("right", 7), ("left", 0)):
+        c.fill(f[side], VLAD_HAIR, 6, rows=range(2))
+        c.fill(f[side], VLAD_HAIR_DARK, 4, rows=[2], cols=[x for x in range(8) if x != front_col])
+        ear_x = 4 if side == "right" else 3
+        c.px(f[side], ear_x, 4, VLAD_SKIN_SHADE)
+        c.px(f[side], ear_x, 5, VLAD_SKIN_SHADE)
+    c.fill(f["back"], VLAD_HAIR, 6, rows=range(3))
+    c.fill(f["back"], VLAD_HAIR_DARK, 4, rows=[3])
+    c.fill(f["bottom"], VLAD_SKIN_SHADE, 3)
+
+    face = f["front"]
+    c.fill(face, VLAD_HAIR, 6, rows=[0])
+    for x in (0, 1, 6, 7):
+        c.px(face, x, 1, VLAD_HAIR, 6)
+    for x in (1, 2, 5, 6):
+        c.px(face, x, 2, VLAD_HAIR_DARK)  # brows
+    c.px(face, 1, 3, (240, 240, 240))
+    c.px(face, 2, 3, (58, 44, 40))
+    c.px(face, 5, 3, (58, 44, 40))
+    c.px(face, 6, 3, (240, 240, 240))
+    # Closed-mouth grin with raised corners.
+    for x in range(2, 6):
+        c.px(face, x, 6, (158, 92, 86))
+    c.px(face, 1, 5, (222, 150, 136))
+    c.px(face, 6, 5, (222, 150, 136))
+
+    # Outer layer: only the hair, with the fringe standing up a little.
+    hair = faces(32, 0, 8, 8, 8)
+    c.fill(hair["top"], VLAD_HAIR, 8)
+    c.fill(hair["front"], VLAD_HAIR, 8, rows=[0])
+    c.fill(hair["front"], VLAD_HAIR_DARK, 5, rows=[1], cols=range(2, 6))
+    for side in ("right", "left"):
+        c.fill(hair[side], VLAD_HAIR, 8, rows=range(2))
+    c.fill(hair["back"], VLAD_HAIR, 8, rows=range(3))
+
+    c.box(faces(24, 0, 2, 2, 1), VLAD_SKIN_SHADE, 2)  # nose
+
+
+def paint_vlad_body(c):
+    f = faces(16, 16, 8, 12, 4)
+    c.box(f, JACKET, 5)
+    for name in ("front", "back", "left", "right"):
+        c.fill(f[name], JACKET_DARK, 4, rows=range(10, 12))  # ribbed hem
+    front = f["front"]
+    for y in range(3):
+        for x in (3, 4):
+            c.px(front, x, y, TEE, 2)
+    for y in range(3, 12):
+        c.px(front, 4, y, ZIP if y % 2 == 1 else (120, 120, 128))
+    c.px(front, 6, 3, HOOD)  # chest logo
+    c.px(front, 6, 8, JACKET_DARK)  # pocket zips
+    c.px(front, 1, 8, JACKET_DARK)
+
+    hood = faces(0, 32, 9, 3, 5)
+    c.box(hood, HOOD, 4)
+    c.fill(hood["front"], TEE, 2, cols=range(3, 6))
+
+
+def paint_vlad_arm(c, u, v, fist_u, fist_v):
+    f = faces(u, v, 4, 12, 4)
+    c.box(f, JACKET, 5)
+    for name in ("front", "back", "left", "right"):
+        c.fill(f[name], JACKET_DARK, 4, rows=[8])  # cuff
+        c.fill(f[name], VLAD_SKIN, 4, rows=range(9, 12))
+    c.fill(f["bottom"], VLAD_SKIN_SHADE, 3)
+    c.fill(f["top"], JACKET_DARK, 4)
+
+    fist = faces(fist_u, fist_v, 4, 3, 4)
+    c.box(fist, VLAD_SKIN, 4)
+    c.fill(fist["bottom"], VLAD_SKIN_SHADE, 3)
+    for name in ("front", "back", "left", "right"):
+        c.fill(fist[name], VLAD_SKIN_SHADE, 3, rows=[2])
+
+
+def paint_vlad_leg(c, u):
+    c.box(faces(u, 0, 4, 6, 4), BLACK_TROUSERS, 3)
+    shin = faces(u, 10, 4, 6, 4)
+    c.box(shin, BLACK_TROUSERS, 3)
+    for name in ("front", "back", "left", "right"):
+        c.fill(shin[name], SNEAKER, 3, rows=[4])
+        c.fill(shin[name], SOLE, 3, rows=[5])
+    c.fill(shin["bottom"], SOLE, 3)
+
+
+def paint_bike(c):
+    # Wheel slab (2 x 12 x 5): tread on the end caps, a 2 px tyre segment under each cap and one spoke.
+    slab = faces(0, 64, 2, 12, 5)
+    for cap in ("top", "bottom"):
+        for y in range(5):
+            for x in range(2):
+                c.px(slab[cap], x, y, KNOB if (x + y) % 2 == 0 else TYRE, 2)
+    for side in ("right", "left"):
+        c.fill(slab[side], TYRE, 3, rows=[0, 1, 10, 11])
+        c.fill(slab[side], SPOKE, 4, rows=range(2, 10), cols=[2])
+    c.box(faces(24, 64, 2, 2, 2), (70, 72, 76), 3)  # hub
+
+    c.box(faces(0, 84, 1, 13, 1), FRAME, 3)
+    down_tube = faces(8, 84, 1, 13, 2)
+    c.box(down_tube, FRAME, 3)
+    for side in ("right", "left"):
+        for y in (2, 3, 5, 6, 8, 9):  # white lettering along the down tube
+            c.px(down_tube[side], 1 if side == "right" else 0, y, DECAL)
+
+    bar = faces(16, 84, 12, 1, 1)
+    c.box(bar, FRAME, 3)
+    for name in ("top", "bottom", "front", "back"):
+        c.fill(bar[name], GRIP, 3, cols=[0, 1, 10, 11])
+    saddle = faces(16, 88, 3, 1, 5)
+    c.box(saddle, (18, 18, 20), 2)
+    c.fill(saddle["top"], (34, 34, 38), 2, cols=[1])
+    c.box(faces(36, 88, 2, 1, 3), GRIP, 4)  # pedal
+    ring = faces(48, 88, 1, 3, 3)
+    c.box(ring, (124, 126, 130), 4)
+    for side in ("right", "left"):
+        c.px(ring[side], 1, 1, FRAME)
+    c.box(faces(16, 96, 4, 1, 1), FRAME, 3)  # fork crown
+
+
+def vlad_logutov():
+    c = Canvas(size=128, seed=11)
+    paint_vlad_head(c)
+    paint_vlad_body(c)
+    paint_vlad_arm(c, 40, 16, 0, 40)
+    paint_vlad_arm(c, 32, 48, 16, 40)
+    paint_vlad_leg(c, 64)
+    paint_vlad_leg(c, 80)
+    paint_bike(c)
+    return c.img
+
+
+ICON = [
+    "................................",
+    "................................",
+    "......................yyyy......",
+    ".....................yyyyyy.....",
+    ".....................yyyyyy.....",
+    ".....................yyyyyy.....",
+    "......................yyyy......",
+    "................................",
+    "................................",
+    "....r...........................",
+    "...rrr..............r...........",
+    "..rrrrr............rrr..........",
+    ".rrrrrrr..........rrrrr.........",
+    ".wwwwwww.........rrrrrrr........",
+    ".wwlwwlw.........wwwwwww........",
+    ".wwwwwww.........wlwwwlw........",
+    "gggggggggg.....ggggggggggggg....",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+    "dddddddddddddddddddddddddddddddd",
+    "dddddddddddddddddddddddddddddddd",
+]
+ICON_WHEEL = ["...ttt...", ".tt...tt.", ".t.....t.", "t.......t", "t.......t", "t.......t", ".t.....t.",
+              ".tt...tt.", "...ttt..."]
+# Bike frame as (x, y) pixels: stays, seat tube, top tube, down tube, fork.
+ICON_FRAME = [(10, 24), (11, 23), (11, 22), (12, 21), (10, 25), (11, 25), (12, 26), (13, 26), (14, 26),
+              (13, 20), (13, 21), (14, 22), (14, 23), (14, 24), (15, 25), (15, 26),
+              (14, 20), (15, 20), (16, 20), (17, 20), (18, 20), (19, 20), (20, 20), (21, 20),
+              (20, 21), (19, 22), (18, 23), (17, 24), (16, 25),
+              (21, 21), (22, 22), (22, 23), (22, 24), (23, 25)]
+ICON_SADDLE = [(11, 19), (12, 19), (13, 19), (14, 19)]
+ICON_BAR = [(21, 19), (21, 18), (20, 18), (22, 18)]
+ICON_PALETTE = {
+    "y": (255, 214, 96), "r": (112, 50, 40), "w": (150, 104, 66), "l": (255, 226, 130),
+    "g": (74, 132, 70), "G": (98, 164, 84), "d": (146, 116, 80), "b": (24, 26, 28),
+    "t": (36, 36, 40), "s": (18, 18, 20), "h": (60, 60, 64),
+}
+
+
+def icon():
+    """Mod icon: the village at dusk with the bike in front, 32x32 art scaled up to 128x128."""
+    img = Image.new("RGBA", (32, 32))
+    for y, row in enumerate(ICON):
+        t = y / 16
+        sky = (int(72 + 170 * t), int(96 + 70 * t), int(170 - 60 * t))
+        for x, key in enumerate(row):
+            img.putpixel((x, y), ICON_PALETTE.get(key, sky) + (255,))
+    for left in (5, 19):
+        for y, row in enumerate(ICON_WHEEL):
+            for x, key in enumerate(row):
+                if key == "t":
+                    img.putpixel((left + x, 21 + y), ICON_PALETTE["t"] + (255,))
+    for points, key in ((ICON_FRAME, "b"), (ICON_SADDLE, "s"), (ICON_BAR, "h")):
+        for x, y in points:
+            img.putpixel((x, y), ICON_PALETTE[key] + (255,))
+    return img.resize((128, 128), Image.NEAREST)
+
+
 def main():
     os.makedirs(f"{OUT}/entity", exist_ok=True)
     os.makedirs(f"{OUT}/item", exist_ok=True)
     base = kalabushkin()
     base.save(f"{OUT}/entity/kalabushkin.png")
     spirit(base).save(f"{OUT}/entity/kalabushkin_spirit.png")
+    vlad_logutov().save(f"{OUT}/entity/vlad_logutov.png")
+    assert len(ICON) == 32 and all(len(r) == 32 for r in ICON)
+    icon().save(f"{OUT}/../icon.png")
     for name, (rows, palette) in ITEMS.items():
         assert len(rows) == 16 and all(len(r) == 16 for r in rows), name
         item(rows, palette).save(f"{OUT}/item/{name}.png")

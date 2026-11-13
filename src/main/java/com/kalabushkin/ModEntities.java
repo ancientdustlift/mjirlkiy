@@ -2,6 +2,7 @@ package com.kalabushkin;
 
 import com.kalabushkin.entity.KalabushkinEntity;
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
+import com.kalabushkin.entity.VladLogutovEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -37,12 +38,24 @@ public final class ModEntities {
 					.maxTrackingRange(10)
 					.build());
 
+	// Hitbox covers the rider; the bike's wheels stick out of it front and back.
+	public static final EntityType<VladLogutovEntity> VLAD_LOGUTOV = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("vlad_logutov"),
+			EntityType.Builder.create(VladLogutovEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.9f, 2.05f)
+					.eyeHeight(1.8f)
+					.maxTrackingRange(10)
+					.build());
+
 	private ModEntities() {
 	}
 
 	public static void init() {
 		FabricDefaultAttributeRegistry.register(KALABUSHKIN, KalabushkinEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SPIRIT, KalabushkinSpiritEntity.createAttributes());
+
+		FabricDefaultAttributeRegistry.register(VLAD_LOGUTOV, VladLogutovEntity.createAttributes());
 
 		SpawnRestriction.register(KALABUSHKIN, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, KalabushkinEntity::canSpawnHere);
@@ -52,5 +65,12 @@ public final class ModEntities {
 						BiomeKeys.FOREST, BiomeKeys.BIRCH_FOREST, BiomeKeys.FLOWER_FOREST, BiomeKeys.TAIGA,
 						BiomeKeys.SAVANNA, BiomeKeys.CHERRY_GROVE),
 				SpawnGroup.CREATURE, KALABUSHKIN, 4, 1, 1);
+
+		SpawnRestriction.register(VLAD_LOGUTOV, SpawnLocationTypes.ON_GROUND,
+				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, VladLogutovEntity::canSpawnHere);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.SUNFLOWER_PLAINS, BiomeKeys.MEADOW,
+						BiomeKeys.SAVANNA),
+				SpawnGroup.CREATURE, VLAD_LOGUTOV, 4, 1, 1);
 	}
 }
