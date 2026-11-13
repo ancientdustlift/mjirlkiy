@@ -85,6 +85,10 @@ public final class Magic {
       } else {
          m.addCommandTag("gb_mage");
          Models.equipHat(m, "mage_hat");
+         if (Models.custom()) {
+            Models.attachExtra(m, "staff_mage");
+         }
+
          m.setCustomName(Text.literal("Маг «" + k.title + "»").formatted(k.color));
          m.setCustomNameVisible(true);
          EntityAttributeInstance hp = m.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);

@@ -1090,8 +1090,72 @@ public final class ModelParts {
       );
    }
 
+   private static ModelParts.Part still(String name, int cmd, boolean bright) {
+      return p(name, cmd, -1, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, bright);
+   }
+
+   private static void props(String name, ModelParts.Part... parts) {
+      ALL.put(name, new ModelParts.Creature(name, 1.0F, false, false, parts));
+   }
+
+   private static void c_props() {
+      props(
+         "bombs",
+         still("bomb", 4400, false),
+         still("grenade", 4401, false),
+         still("napalm", 4402, false),
+         still("water", 4403, false),
+         still("cluster", 4404, false),
+         still("santa", 4405, false),
+         still("atomic", 4406, false),
+         still("czar", 4407, false),
+         still("antimatter", 4408, true),
+         still("timed", 4409, false)
+      );
+      props("blackhole", still("core", 4500, true), still("ring", 4501, true));
+      props("tornado", still("funnel", 4600, false), still("skirt", 4601, false));
+      props("ship", still("ship", 4800, false));
+   }
+
+   // Staffs float beside the carrier's right hand; the model's pole foot sits 16 pixels below its centre.
+   private static void staff(String name, int cmd) {
+      props(name, p("staff", cmd, -1, -7.0F, 16.5F, 3.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 2, 2.5F, 0.35F, 0.0F, 0, 0), a(0, 0, 6.0F, 1.0F, 0.0F, 1, 0)));
+   }
+
+   private static void c_staffs() {
+      staff("staff_necro", 4900);
+      staff("staff_evil_mage", 4901);
+      staff("staff_white_mage", 4902);
+      staff("staff_druid", 4903);
+      staff("staff_plague_doctor", 4904);
+      staff("staff_mage", 4905);
+   }
+
+   private static void c_alien() {
+      ALL.put(
+         "alien",
+         new ModelParts.Creature(
+            "alien",
+            1.0F,
+            true,
+            false,
+            new ModelParts.Part[]{
+               p("torso", 4701, -1, 0.0F, 24.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(1, 1, 0.4F, 0.4F, 0.0F, 0, 0)),
+               p("head", 4700, -1, 0.0F, 38.5F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 0, 3.0F, 0.4F, 0.0F, 0, 0), a(0, 1, 6.0F, 0.15F, 0.0F, 2, 0)),
+               p("arm_r", 4702, -1, -5.0F, 29.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 0, 26.0F, 1.1F, 0.5F, 1, 0), a(0, 2, 2.0F, 0.4F, 0.0F, 0, 0)),
+               p("arm_l", 4702, -1, 5.0F, 29.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 0, 26.0F, 1.1F, 0.0F, 1, 0), a(0, 2, -2.0F, 0.4F, 0.0F, 0, 0)),
+               p("leg_r", 4703, -1, -2.0F, 18.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 0, 30.0F, 1.1F, 0.0F, 1, 0)),
+               p("leg_l", 4703, -1, 2.0F, 18.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, false, a(0, 0, 30.0F, 1.1F, 0.5F, 1, 0))
+            }
+         )
+      );
+   }
+
    static {
       c_meteor();
+      c_props();
+      c_staffs();
+      c_alien();
       c_crab();
       c_robot();
       c_titan();

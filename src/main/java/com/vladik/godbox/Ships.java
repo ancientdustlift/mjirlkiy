@@ -2,29 +2,35 @@ package com.vladik.godbox;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Direction.Type;
 import net.minecraft.util.math.random.Random;
+import org.joml.Quaternionf;
 
 public final class Ships {
    public static boolean on = true;
    static final Map<Kingdoms.K, BlockPos> PORTS = new EnumMap<>(Kingdoms.K.class);
    private static final Map<Kingdoms.K, BoatEntity> FISH = new EnumMap<>(Kingdoms.K.class);
+   private static final Map<BoatEntity, ItemDisplayEntity> RIGS = new IdentityHashMap<>();
    private static int t;
 
    private Ships() {
@@ -132,6 +138,7 @@ public final class Ships {
          b.refreshPositionAndAngles(at.getX() + 0.5, at.getY() + 0.9, at.getZ() + 0.5, 0.0F, 0.0F);
          b.addCommandTag("gb_ship");
          w.spawnEntity(b);
+         rig(w, b);
          return b;
       }
    }
@@ -193,8 +200,50 @@ public final class Ships {
       }
    }
 
+   // The ship model is drawn at twice size; its hull floor sits 5 model pixels below its centre.
+   private static final float SHIP_SCALE = 2.0F;
+   private static final double SHIP_LIFT = 0.6;
+
+   private static void rig(ServerWorld w, BoatEntity b) {
+      if (!RIGS.containsKey(b)) {
+         ItemDisplayEntity d = Models.prop(w, "ship", "ship", b.getX(), b.getY() + SHIP_LIFT, b.getZ());
+         if (d != null) {
+            Models.pose(d, new Quaternionf(), SHIP_SCALE);
+            d.setYaw(b.getYaw());
+            RIGS.put(b, d);
+         }
+      }
+   }
+
+   private static void rigs(MinecraftServer s) {
+      Iterator<Map.Entry<BoatEntity, ItemDisplayEntity>> it = RIGS.entrySet().iterator();
+
+      while (it.hasNext()) {
+         Map.Entry<BoatEntity, ItemDisplayEntity> e = it.next();
+         BoatEntity b = e.getKey();
+         ItemDisplayEntity d = e.getValue();
+         if (b.isAlive() && d.isAlive() && b.getWorld() == d.getWorld()) {
+            d.setPosition(b.getX(), b.getY() + SHIP_LIFT, b.getZ());
+            d.setYaw(b.getYaw());
+         } else {
+            d.discard();
+            it.remove();
+         }
+      }
+
+      // Boats are saved with the world but their models are not, so re-rig the ones that lost theirs.
+      if (t % 100 == 0) {
+         for (ServerWorld w : s.getWorlds()) {
+            for (BoatEntity b : w.getEntitiesByType(TypeFilter.instanceOf(BoatEntity.class), x -> x.isAlive() && x.getCommandTags().contains("gb_ship"))) {
+               rig(w, b);
+            }
+         }
+      }
+   }
+
    public static void tick(MinecraftServer s) {
       t++;
+      rigs(s);
 
       for (Kingdoms.K k : Kingdoms.K.values()) {
          BoatEntity b = FISH.get(k);
@@ -311,6 +360,8 @@ public final class Ships {
    }
 
    public static void clear() {
+      RIGS.values().forEach(Entity::discard);
+      RIGS.clear();
       PORTS.clear();
       FISH.clear();
       t = 0;

@@ -69,40 +69,33 @@ public final class Powers {
                } else {
                   switch (power) {
                      case BOMB:
-                        w.createExplosion(null, c.x, c.y, c.z, 4.0F, false, ExplosionSourceType.TNT);
-                        Fx.particles(w, ParticleTypes.EXPLOSION_EMITTER, c.x, c.y, c.z, 2, 1.0, 1.0, 1.0, 0.0);
+                        Drops.bomb(w, c, "bomb", 1.6F, () -> {
+                           w.createExplosion(null, c.x, c.y, c.z, 4.0F, false, ExplosionSourceType.TNT);
+                           Fx.particles(w, ParticleTypes.EXPLOSION_EMITTER, c.x, c.y, c.z, 2, 1.0, 1.0, 1.0, 0.0);
+                        });
                         break;
                      case NAPALM:
-                        w.createExplosion(null, c.x, c.y, c.z, 3.0F, true, ExplosionSourceType.TNT);
-
-                        for (BlockPos pxxxxxxx : Fx.brush(w, pos, 6)) {
-                           if (r.nextFloat() < 0.6F) {
-                              Fx.fire(w, pxxxxxxx);
-                           }
-                        }
-
-                        Fx.particles(w, ParticleTypes.FLAME, c.x, c.y + 1.0, c.z, 250, 4.0, 1.5, 4.0, 0.05);
-
-                        for (LivingEntity exx : Fx.living(w, c, 7.0)) {
-                           exx.setOnFireFor(10.0F);
-                        }
+                        Drops.bomb(w, c, "napalm", 1.6F, () -> napalm(w, pos, c, r));
                         break;
                      case CLUSTER:
-                        for (int i = 0; i < 10; i++) {
-                           double ox = c.x + (r.nextDouble() - 0.5) * 14.0;
-                           double oz = c.z + (r.nextDouble() - 0.5) * 14.0;
-                           Tasks.delay(i * 3 + 1, () -> {
-                              BlockPos s = Fx.surface(w, MathHelper.floor(ox), MathHelper.floor(oz));
-                              w.createExplosion(null, ox, s.getY(), oz, 2.5F, false, ExplosionSourceType.TNT);
-                              Fx.particles(w, ParticleTypes.EXPLOSION_EMITTER, ox, s.getY(), oz, 1, 0.0, 0.0, 0.0, 0.0);
-                           });
-                        }
+                        Drops.bomb(w, c, "cluster", 1.8F, () -> {
+                           for (int i = 0; i < 10; i++) {
+                              double ox = c.x + (r.nextDouble() - 0.5) * 14.0;
+                              double oz = c.z + (r.nextDouble() - 0.5) * 14.0;
+                              Tasks.delay(i * 3 + 1, () -> {
+                                 BlockPos s = Fx.surface(w, MathHelper.floor(ox), MathHelper.floor(oz));
+                                 w.createExplosion(null, ox, s.getY(), oz, 2.5F, false, ExplosionSourceType.TNT);
+                                 Fx.particles(w, ParticleTypes.EXPLOSION_EMITTER, ox, s.getY(), oz, 1, 0.0, 0.0, 0.0, 0.0);
+                              });
+                           }
+                        });
                         break;
                      case ATOMIC:
                         Tasks.add(new Disasters.Atomic(w, pos));
                         break;
                      case ANTIMATTER:
-                        antimatter(w, pos, c, Math.min(14, 5 + brush));
+                        int antiRad = Math.min(14, 5 + brush);
+                        Drops.bomb(w, c, "antimatter", 1.8F, () -> antimatter(w, pos, c, antiRad));
                         break;
                      case LIGHTNING:
                         LightningEntity l = EntityType.LIGHTNING_BOLT.create(w);
@@ -445,6 +438,22 @@ public final class Powers {
 
             Fx.particles(w, ParticleTypes.POOF, e.getX(), e.getY() + 0.5, e.getZ(), 10, 0.3, 0.3, 0.3, 0.02);
          }
+      }
+   }
+
+   private static void napalm(ServerWorld w, BlockPos pos, Vec3d c, Random r) {
+      w.createExplosion(null, c.x, c.y, c.z, 3.0F, true, ExplosionSourceType.TNT);
+
+      for (BlockPos p : Fx.brush(w, pos, 6)) {
+         if (r.nextFloat() < 0.6F) {
+            Fx.fire(w, p);
+         }
+      }
+
+      Fx.particles(w, ParticleTypes.FLAME, c.x, c.y + 1.0, c.z, 250, 4.0, 1.5, 4.0, 0.05);
+
+      for (LivingEntity e : Fx.living(w, c, 7.0)) {
+         e.setOnFireFor(10.0F);
       }
    }
 

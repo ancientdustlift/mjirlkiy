@@ -1143,6 +1143,156 @@
     "custom_model_data": 4301
    },
    "model": "godbox:item/m/meteor/fire"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4400
+   },
+   "model": "godbox:item/m/bombs/bomb"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4401
+   },
+   "model": "godbox:item/m/bombs/grenade"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4402
+   },
+   "model": "godbox:item/m/bombs/napalm"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4403
+   },
+   "model": "godbox:item/m/bombs/water"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4404
+   },
+   "model": "godbox:item/m/bombs/cluster"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4405
+   },
+   "model": "godbox:item/m/bombs/santa"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4406
+   },
+   "model": "godbox:item/m/bombs/atomic"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4407
+   },
+   "model": "godbox:item/m/bombs/czar"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4408
+   },
+   "model": "godbox:item/m/bombs/antimatter"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4409
+   },
+   "model": "godbox:item/m/bombs/timed"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4500
+   },
+   "model": "godbox:item/m/blackhole/core"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4501
+   },
+   "model": "godbox:item/m/blackhole/ring"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4600
+   },
+   "model": "godbox:item/m/tornado/funnel"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4601
+   },
+   "model": "godbox:item/m/tornado/skirt"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4700
+   },
+   "model": "godbox:item/m/alien/head"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4701
+   },
+   "model": "godbox:item/m/alien/torso"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4702
+   },
+   "model": "godbox:item/m/alien/arm"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4703
+   },
+   "model": "godbox:item/m/alien/leg"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4800
+   },
+   "model": "godbox:item/m/ship/ship"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4900
+   },
+   "model": "godbox:item/m/staffs/necro"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4901
+   },
+   "model": "godbox:item/m/staffs/evil"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4902
+   },
+   "model": "godbox:item/m/staffs/white"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4903
+   },
+   "model": "godbox:item/m/staffs/druid"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4904
+   },
+   "model": "godbox:item/m/staffs/lantern"
+  },
+  {
+   "predicate": {
+    "custom_model_data": 4905
+   },
+   "model": "godbox:item/m/staffs/mage"
   }
  ]
 }

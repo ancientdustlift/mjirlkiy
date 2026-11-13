@@ -9,6 +9,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SnowBlock;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.decoration.DisplayEntity;
+import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -47,6 +49,7 @@ import net.minecraft.world.GameRules.IntRule;
 import net.minecraft.world.GameRules.Key;
 import net.minecraft.world.Heightmap.Type;
 import net.minecraft.world.World.ExplosionSourceType;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public final class Powers3 {
@@ -709,7 +712,11 @@ public final class Powers3 {
                      MobEntity alien = EntityType.ENDERMAN.spawn(this.w, px, SpawnReason.TRIGGERED);
                      if (alien != null) {
                         alien.setCustomName(Text.literal("Пришелец").formatted(Formatting.GREEN));
-                        alien.setGlowing(true);
+                        // The model hides the Enderman, and a glowing outline would trace its hidden body.
+                        if (!Models.attachCustom(alien, "alien")) {
+                           alien.setGlowing(true);
+                        }
+
                         Fx.particles(this.w, Powers3.GREEN, px.getX() + 0.5, px.getY() + 1, px.getZ() + 0.5, 40, 0.5, 1.0, 0.5, 0.0);
                      }
                   }
@@ -739,6 +746,34 @@ public final class Powers3 {
       final Vec3d c;
       final int maxR;
       int t;
+      ItemDisplayEntity core;
+      ItemDisplayEntity ring;
+
+      // The core model is about 0.44 blocks in radius and the disc 1.44 blocks, both at scale 1.
+      private void model(double rad) {
+         if (this.t == 1) {
+            this.core = Models.prop(this.w, "blackhole", "core", this.c.x, this.c.y, this.c.z);
+            this.ring = Models.prop(this.w, "blackhole", "ring", this.c.x, this.c.y, this.c.z);
+         }
+
+         if (this.core != null) {
+            Models.pose(this.core, new Quaternionf().rotationY(this.t * 0.05F), (float)(rad * 0.7));
+         }
+
+         if (this.ring != null) {
+            Models.pose(this.ring, new Quaternionf().rotationX(0.35F).rotateY(this.t * 0.22F), (float)(rad * 0.6));
+         }
+
+         if (this.t >= 400) {
+            if (this.core != null) {
+               this.core.discard();
+            }
+
+            if (this.ring != null) {
+               this.ring.discard();
+            }
+         }
+      }
 
       BlackHole(ServerWorld w, Vec3d c, int brush) {
          this.w = w;
@@ -751,6 +786,7 @@ public final class Powers3 {
          this.t++;
          double rad = Math.min((double)this.maxR, 2.0 + this.t / 15.0);
          Random r = this.w.getRandom();
+         this.model(rad);
          Fx.particles(this.w, Powers3.BLACK, this.c.x, this.c.y, this.c.z, 25, rad * 0.25, rad * 0.25, rad * 0.25, 0.0);
          Fx.particles(this.w, ParticleTypes.REVERSE_PORTAL, this.c.x, this.c.y, this.c.z, 40, rad, rad, rad, 0.1);
          Fx.particles(this.w, ParticleTypes.SQUID_INK, this.c.x, this.c.y, this.c.z, 10, rad * 0.4, rad * 0.4, rad * 0.4, 0.02);
@@ -760,7 +796,7 @@ public final class Powers3 {
 
          double pull = rad * 2.5 + 6.0;
 
-         for (Entity e : this.w.getOtherEntities(null, new Box(this.c, this.c).expand(pull), ex -> !GodManager.isGodEntity(ex) && !ex.isSpectator())) {
+         for (Entity e : this.w.getOtherEntities(null, new Box(this.c, this.c).expand(pull), ex -> !GodManager.isGodEntity(ex) && !ex.isSpectator() && !(ex instanceof DisplayEntity))) {
             if (!(e instanceof PlayerEntity p && p.isCreative())) {
                Vec3d d = this.c.subtract(e.getPos());
                double len = d.length();

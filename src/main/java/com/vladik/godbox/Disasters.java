@@ -6,6 +6,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -33,13 +34,22 @@ public final class Disasters {
       private final double x;
       private final double z;
       private final double gy;
+      private final String part;
+      private final float scale;
       private int t = 0;
+      private ItemDisplayEntity bomb;
 
       public Atomic(ServerWorld w, BlockPos c) {
+         this(w, c, "atomic", 3.5F);
+      }
+
+      public Atomic(ServerWorld w, BlockPos c, String part, float scale) {
          this.w = w;
          this.x = c.getX() + 0.5;
          this.z = c.getZ() + 0.5;
          this.gy = Fx.surface(w, c.getX(), c.getZ()).getY();
+         this.part = part;
+         this.scale = scale;
       }
 
       @Override
@@ -51,11 +61,25 @@ public final class Disasters {
 
          if (this.t < 20) {
             double y = this.gy + 60.0 - this.t * 3;
+            if (this.t == 0) {
+               this.bomb = Models.prop(this.w, "bombs", this.part, this.x, y, this.z);
+            }
+
+            if (this.bomb != null) {
+               this.bomb.setPosition(this.x, y, this.z);
+               Models.pose(this.bomb, new Quaternionf().rotationY(this.t * 0.12F), this.scale);
+            }
+
             Fx.particles(this.w, ParticleTypes.LARGE_SMOKE, this.x, y, this.z, 6, 0.2, 0.2, 0.2, 0.01);
             Fx.particles(this.w, ParticleTypes.FLAME, this.x, y, this.z, 6, 0.2, 0.2, 0.2, 0.01);
          }
 
          if (this.t == 20) {
+            if (this.bomb != null) {
+               this.bomb.discard();
+               this.bomb = null;
+            }
+
             Fx.particles(this.w, ParticleTypes.FLASH, this.x, this.gy + 3.0, this.z, 6, 3.0, 3.0, 3.0, 0.0);
             this.w.createExplosion(null, this.x, this.gy, this.z, 12.0F, true, ExplosionSourceType.TNT);
             Fx.particles(this.w, ParticleTypes.EXPLOSION_EMITTER, this.x, this.gy + 2.0, this.z, 25, 9.0, 4.0, 9.0, 0.0);
@@ -365,6 +389,40 @@ public final class Disasters {
       private double vx;
       private double vz;
       private int life = 400;
+      private ItemDisplayEntity funnel;
+      private ItemDisplayEntity skirt;
+
+      // The funnel model is 3 blocks tall at scale 1 and is centred 1.5 blocks above its base.
+      private static final float FUNNEL_SCALE = 26.0F / 3.0F;
+
+      private void model(int gy) {
+         if (this.life == 400) {
+            this.funnel = Models.prop(this.w, "tornado", "funnel", this.x, gy, this.z);
+            this.skirt = Models.prop(this.w, "tornado", "skirt", this.x, gy, this.z);
+         }
+
+         double y = gy + 1.5 * FUNNEL_SCALE;
+         float turn = (400 - this.life) * 0.5F;
+         if (this.funnel != null) {
+            this.funnel.setPosition(this.x, y, this.z);
+            Models.pose(this.funnel, new Quaternionf().rotationY(turn), FUNNEL_SCALE);
+         }
+
+         if (this.skirt != null) {
+            this.skirt.setPosition(this.x, y, this.z);
+            Models.pose(this.skirt, new Quaternionf().rotationY(-turn * 1.6F), FUNNEL_SCALE);
+         }
+
+         if (this.life <= 1) {
+            if (this.funnel != null) {
+               this.funnel.discard();
+            }
+
+            if (this.skirt != null) {
+               this.skirt.discard();
+            }
+         }
+      }
 
       public Tornado(ServerWorld w, double x, double z) {
          this.w = w;
@@ -380,6 +438,7 @@ public final class Disasters {
          this.x = this.x + this.vx;
          this.z = this.z + this.vz;
          int gy = Fx.surface(this.w, MathHelper.floor(this.x), MathHelper.floor(this.z)).getY();
+         this.model(gy);
 
          for (int i = 0; i < 30; i++) {
             double h = r.nextDouble() * 26.0;
@@ -390,7 +449,7 @@ public final class Disasters {
 
          Box box = new Box(this.x - 10.0, gy - 4, this.z - 10.0, this.x + 10.0, gy + 32, this.z + 10.0);
 
-         for (Entity e : this.w.getOtherEntities(null, box, en -> !GodManager.isGodEntity(en) && !en.isSpectator())) {
+         for (Entity e : this.w.getOtherEntities(null, box, en -> !GodManager.isGodEntity(en) && !en.isSpectator() && !(en instanceof DisplayEntity))) {
             double dx = this.x - e.getX();
             double dz = this.z - e.getZ();
             double d = Math.max(0.5, Math.sqrt(dx * dx + dz * dz));

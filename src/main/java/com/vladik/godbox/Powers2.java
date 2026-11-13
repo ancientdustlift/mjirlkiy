@@ -24,6 +24,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.TntEntity;
@@ -59,6 +60,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World.ExplosionSourceType;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public final class Powers2 {
@@ -184,7 +186,7 @@ public final class Powers2 {
       } else {
          switch (power) {
             case GRENADE:
-               w.createExplosion(null, c.x, c.y, c.z, 2.0F, false, ExplosionSourceType.TNT);
+               Drops.bomb(w, c, "grenade", 1.2F, () -> w.createExplosion(null, c.x, c.y, c.z, 2.0F, false, ExplosionSourceType.TNT));
                break;
             case TNT:
                for (int i = 0; i < Math.max(1, brush / 3); i++) {
@@ -197,6 +199,11 @@ public final class Powers2 {
                break;
             case TIMED_BOMB: {
                int[] t = new int[]{0};
+               ItemDisplayEntity charge = Models.prop(w, "bombs", "timed", c.x, c.y + 0.25, c.z);
+               if (charge != null) {
+                  Models.pose(charge, new Quaternionf().rotationY(r.nextFloat() * 6.28F), 1.5F);
+               }
+
                Tasks.add(() -> {
                   t[0]++;
                   if (t[0] % 10 == 0) {
@@ -207,6 +214,10 @@ public final class Powers2 {
 
                   Fx.particles(w, ParticleTypes.SMOKE, c.x, c.y + 0.3, c.z, 1, 0.05, 0.05, 0.05, 0.01);
                   if (t[0] >= 100) {
+                     if (charge != null) {
+                        charge.discard();
+                     }
+
                      w.createExplosion(null, c.x, c.y, c.z, 6.0F, false, ExplosionSourceType.TNT);
                      return true;
                   } else {
@@ -232,56 +243,12 @@ public final class Powers2 {
                Fx.sound(w, c.x, c.y, c.z, SoundEvents.BLOCK_STONE_PLACE, 1.0F, 0.8F);
                break;
             case WATER_BOMB:
-               w.createExplosion(null, c.x, c.y, c.z, 2.5F, false, ExplosionSourceType.NONE);
-               int rad = 3 + brush / 2;
-
-               for (int dx = -rad; dx <= rad; dx++) {
-                  for (int dyx = -rad; dyx <= 2; dyx++) {
-                     for (int dz = -rad; dz <= rad; dz++) {
-                        if (dx * dx + dyx * dyx + dz * dz <= rad * rad) {
-                           BlockPos pxx = pos.add(dx, dyx + 1, dz);
-                           BlockState st = w.getBlockState(pxx);
-                           if (st.isIn(BlockTags.FIRE)) {
-                              set(w, pxx, Blocks.AIR.getDefaultState());
-                           } else if (st.isAir() && r.nextFloat() < 0.6F) {
-                              set(w, pxx, Blocks.WATER.getDefaultState());
-                           }
-                        }
-                     }
-                  }
-               }
-
-               for (LivingEntity exxxx : Fx.living(w, c, rad + 3)) {
-                  exxxx.extinguish();
-               }
-
-               Fx.particles(w, ParticleTypes.SPLASH, c.x, c.y + 1.0, c.z, 300, rad, 1.5, rad, 0.5);
-               Fx.sound(w, c.x, c.y, c.z, SoundEvents.ENTITY_GENERIC_SPLASH, 3.0F, 0.7F);
+               int waterRad = 3 + brush / 2;
+               Drops.bomb(w, c, "water", 1.6F, () -> waterBomb(w, pos, c, r, waterRad));
                break;
             case SANTA_BOMB:
-               w.createExplosion(null, c.x, c.y, c.z, 3.0F, false, ExplosionSourceType.TNT);
-               Tasks.delay(3, () -> {
-                  for (BlockPos p : Fx.brush(w, pos, 6 + brush / 2)) {
-                     if (r.nextFloat() < 0.7F) {
-                        place(w, p, Blocks.SNOW.getDefaultState());
-                     }
-                  }
-
-                  for (int ixx = 0; ixx < 10; ixx++) {
-                     ItemStack stx = new ItemStack(GIFTS[r.nextInt(GIFTS.length)]);
-                     ItemEntity it = new ItemEntity(w, c.x, c.y + 1.0, c.z, stx);
-                     it.setVelocity(r.nextGaussian() * 0.25, 0.5 + r.nextFloat() * 0.3, r.nextGaussian() * 0.25);
-                     it.setPickupDelay(20);
-                     w.spawnEntity(it);
-                  }
-
-                  for (int ix = 0; ix < 4; ix++) {
-                     firework(w, c.x + r.nextGaussian() * 2.0, c.y + 1.0, c.z + r.nextGaussian() * 2.0, r);
-                  }
-
-                  Fx.particles(w, ParticleTypes.SNOWFLAKE, c.x, c.y + 2.0, c.z, 300, 5.0, 3.0, 5.0, 0.1);
-               });
-               Fx.sound(w, c.x, c.y, c.z, SoundEvents.ENTITY_PLAYER_LEVELUP, 2.0F, 1.5F);
+               int snowRad = 6 + brush / 2;
+               Drops.bomb(w, c, "santa", 1.6F, () -> santaBomb(w, pos, c, r, snowRad));
                break;
             case FIREWORKS:
                for (int i = 0; i < Math.max(1, brush / 2); i++) {
@@ -992,8 +959,61 @@ public final class Powers2 {
       }
    }
 
+   private static void waterBomb(ServerWorld w, BlockPos pos, Vec3d c, Random r, int rad) {
+      w.createExplosion(null, c.x, c.y, c.z, 2.5F, false, ExplosionSourceType.NONE);
+
+      for (int dx = -rad; dx <= rad; dx++) {
+         for (int dy = -rad; dy <= 2; dy++) {
+            for (int dz = -rad; dz <= rad; dz++) {
+               if (dx * dx + dy * dy + dz * dz <= rad * rad) {
+                  BlockPos p = pos.add(dx, dy + 1, dz);
+                  BlockState st = w.getBlockState(p);
+                  if (st.isIn(BlockTags.FIRE)) {
+                     set(w, p, Blocks.AIR.getDefaultState());
+                  } else if (st.isAir() && r.nextFloat() < 0.6F) {
+                     set(w, p, Blocks.WATER.getDefaultState());
+                  }
+               }
+            }
+         }
+      }
+
+      for (LivingEntity e : Fx.living(w, c, rad + 3)) {
+         e.extinguish();
+      }
+
+      Fx.particles(w, ParticleTypes.SPLASH, c.x, c.y + 1.0, c.z, 300, rad, 1.5, rad, 0.5);
+      Fx.sound(w, c.x, c.y, c.z, SoundEvents.ENTITY_GENERIC_SPLASH, 3.0F, 0.7F);
+   }
+
+   private static void santaBomb(ServerWorld w, BlockPos pos, Vec3d c, Random r, int snowRad) {
+      w.createExplosion(null, c.x, c.y, c.z, 3.0F, false, ExplosionSourceType.TNT);
+      Tasks.delay(3, () -> {
+         for (BlockPos p : Fx.brush(w, pos, snowRad)) {
+            if (r.nextFloat() < 0.7F) {
+               place(w, p, Blocks.SNOW.getDefaultState());
+            }
+         }
+
+         for (int i = 0; i < 10; i++) {
+            ItemStack st = new ItemStack(GIFTS[r.nextInt(GIFTS.length)]);
+            ItemEntity it = new ItemEntity(w, c.x, c.y + 1.0, c.z, st);
+            it.setVelocity(r.nextGaussian() * 0.25, 0.5 + r.nextFloat() * 0.3, r.nextGaussian() * 0.25);
+            it.setPickupDelay(20);
+            w.spawnEntity(it);
+         }
+
+         for (int i = 0; i < 4; i++) {
+            firework(w, c.x + r.nextGaussian() * 2.0, c.y + 1.0, c.z + r.nextGaussian() * 2.0, r);
+         }
+
+         Fx.particles(w, ParticleTypes.SNOWFLAKE, c.x, c.y + 2.0, c.z, 300, 5.0, 3.0, 5.0, 0.1);
+      });
+      Fx.sound(w, c.x, c.y, c.z, SoundEvents.ENTITY_PLAYER_LEVELUP, 2.0F, 1.5F);
+   }
+
    private static void czar(ServerWorld w, BlockPos pos, Vec3d c, Random r) {
-      Tasks.add(new Disasters.Atomic(w, pos));
+      Tasks.add(new Disasters.Atomic(w, pos, "czar", 5.0F));
       Tasks.delay(26, () -> ring(w, c, 14.0, 10, 8.0F));
       Tasks.delay(32, () -> ring(w, c, 26.0, 14, 7.0F));
       Tasks.delay(38, () -> {

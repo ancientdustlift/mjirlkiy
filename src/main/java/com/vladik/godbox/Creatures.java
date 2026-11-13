@@ -165,6 +165,10 @@ public final class Creatures {
          if (!Models.isHat(m.getEquippedStack(EquipmentSlot.HEAD))) {
             Models.equipHat(m, hat);
          }
+
+         if (Models.custom() && ModelParts.has("staff_" + t)) {
+            Models.attachExtra(m, "staff_" + t);
+         }
       } else if (ModelParts.has(t) && !Models.has(m) && Models.custom()) {
          if (t.equals("fire_skull") && m.getMainHandStack().isOf(Items.IRON_SWORD)) {
             EntityAttributeInstance dmg = m.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE);
