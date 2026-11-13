@@ -15,6 +15,7 @@ public class Kalabushkin implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModEffects.init();
 		ModEntities.init();
 		ModItems.init();
 		SpiritManager.init();

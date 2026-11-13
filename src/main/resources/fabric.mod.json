@@ -3,7 +3,7 @@
 	"id": "kalabushkin",
 	"version": "${version}",
 	"name": "Legends of Seltso",
-	"description": "The legends of Seltso as Minecraft mobs. Kalabushkin fist-bumps you, drops a carpenter's plane or mallet and leaves a spirit that follows you. Vlad Logutov rides his mountain bike up to you to ask a question and drops the Shatuni, a two-handed crankset you spin like a circular saw. Little Koch tags along with Vlad and drops fat.",
+	"description": "The legends of Seltso as Minecraft mobs. Kalabushkin fist-bumps you, drops a carpenter's plane or mallet and leaves a spirit that follows you. Vlad Logutov rides his mountain bike up to you to ask a question and drops the Shatuni, a two-handed crankset you spin like a circular saw. Little Koch tags along with Vlad and drops fat. Vasily shambles around like a zombie, shakes your hand and hands out snus, vapes and cigarettes that leave you weak, sick and tripping.",
 	"icon": "assets/kalabushkin/icon.png",
 	"authors": ["ancientdustlift"],
 	"license": "MIT",

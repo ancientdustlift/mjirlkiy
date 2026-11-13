@@ -23,10 +23,13 @@ public class KalabushkinClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(KalabushkinSpiritModel.LAYER, KalabushkinSpiritModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(VladLogutovModel.LAYER, VladLogutovModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(LittleKochModel.LAYER, LittleKochModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(VasilyModel.LAYER, VasilyModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.KALABUSHKIN, KalabushkinRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SPIRIT, KalabushkinSpiritRenderer::new);
 		EntityRendererRegistry.register(ModEntities.VLAD_LOGUTOV, VladLogutovRenderer::new);
 		EntityRendererRegistry.register(ModEntities.LITTLE_KOCH, LittleKochRenderer::new);
+		EntityRendererRegistry.register(ModEntities.VASILY, VasilyRenderer::new);
+		TripVisuals.init();
 
 		// Drives the weapons' swing animation: item model overrides pick a frame from this value.
 		ClampedModelPredicateProvider swing = (stack, world, entity, seed) -> {

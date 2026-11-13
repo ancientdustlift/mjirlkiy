@@ -1,6 +1,7 @@
 package com.kalabushkin;
 
 import com.kalabushkin.item.CarpenterWeaponItem;
+import com.kalabushkin.item.NicotineItem;
 import com.kalabushkin.item.ShatuniItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -33,6 +34,13 @@ public final class ModItems {
 	public static final Item FAT = register("fat", new Item(new Item.Settings()
 			.food(new FoodComponent.Builder().nutrition(4).saturationModifier(0.8f).build())));
 
+	public static final Item VASILY_SPAWN_EGG = register("vasily_spawn_egg",
+			new SpawnEggItem(ModEntities.VASILY, 0xE8BFA6, 0x9A9A9E, new Item.Settings()));
+	public static final Item SNUS = nicotineItem(NicotineItem.Kind.SNUS);
+	public static final Item VAPE = nicotineItem(NicotineItem.Kind.VAPE);
+	public static final Item CIGARETTE = nicotineItem(NicotineItem.Kind.CIGARETTE);
+	public static final Item DYADKOVO_CIGARETTE = nicotineItem(NicotineItem.Kind.DYADKOVO_CIGARETTE);
+
 	public static final ItemGroup GROUP = Registry.register(Registries.ITEM_GROUP, Kalabushkin.id("main"),
 			FabricItemGroup.builder()
 					.displayName(Text.translatable("itemGroup.kalabushkin"))
@@ -41,14 +49,32 @@ public final class ModItems {
 						entries.add(KALABUSHKIN_SPAWN_EGG);
 						entries.add(VLAD_LOGUTOV_SPAWN_EGG);
 						entries.add(LITTLE_KOCH_SPAWN_EGG);
+						entries.add(VASILY_SPAWN_EGG);
 						entries.add(SHATUNI);
 						entries.add(CARPENTER_PLANE);
 						entries.add(WOODEN_MALLET);
 						entries.add(FAT);
+						entries.add(SNUS);
+						entries.add(VAPE);
+						entries.add(CIGARETTE);
+						entries.add(DYADKOVO_CIGARETTE);
 					})
 					.build());
 
 	private ModItems() {
+	}
+
+	private static Item nicotineItem(NicotineItem.Kind kind) {
+		return register(kind.id(), new NicotineItem(kind, new Item.Settings()));
+	}
+
+	public static Item nicotine(NicotineItem.Kind kind) {
+		return switch (kind) {
+			case SNUS -> SNUS;
+			case VAPE -> VAPE;
+			case CIGARETTE -> CIGARETTE;
+			case DYADKOVO_CIGARETTE -> DYADKOVO_CIGARETTE;
+		};
 	}
 
 	private static Item register(String name, Item item) {
@@ -61,6 +87,7 @@ public final class ModItems {
 					entries.add(KALABUSHKIN_SPAWN_EGG);
 					entries.add(VLAD_LOGUTOV_SPAWN_EGG);
 					entries.add(LITTLE_KOCH_SPAWN_EGG);
+					entries.add(VASILY_SPAWN_EGG);
 				});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(entries -> entries.add(FAT));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {

@@ -3,6 +3,7 @@ package com.kalabushkin;
 import com.kalabushkin.entity.KalabushkinEntity;
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
 import com.kalabushkin.entity.LittleKochEntity;
+import com.kalabushkin.entity.VasilyEntity;
 import com.kalabushkin.entity.VladLogutovEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -59,6 +60,15 @@ public final class ModEntities {
 					.maxTrackingRange(10)
 					.build());
 
+	public static final EntityType<VasilyEntity> VASILY = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("vasily"),
+			EntityType.Builder.create(VasilyEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.6f, 1.95f)
+					.eyeHeight(1.7f)
+					.maxTrackingRange(10)
+					.build());
+
 	private ModEntities() {
 	}
 
@@ -68,6 +78,7 @@ public final class ModEntities {
 
 		FabricDefaultAttributeRegistry.register(VLAD_LOGUTOV, VladLogutovEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(LITTLE_KOCH, LittleKochEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(VASILY, VasilyEntity.createAttributes());
 
 		SpawnRestriction.register(KALABUSHKIN, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, KalabushkinEntity::canSpawnHere);
@@ -84,5 +95,12 @@ public final class ModEntities {
 				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.SUNFLOWER_PLAINS, BiomeKeys.MEADOW,
 						BiomeKeys.SAVANNA),
 				SpawnGroup.CREATURE, VLAD_LOGUTOV, 4, 1, 1);
+
+		SpawnRestriction.register(VASILY, SpawnLocationTypes.ON_GROUND,
+				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, VasilyEntity::canSpawnHere);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.FOREST, BiomeKeys.BIRCH_FOREST,
+						BiomeKeys.TAIGA),
+				SpawnGroup.CREATURE, VASILY, 3, 1, 1);
 	}
 }

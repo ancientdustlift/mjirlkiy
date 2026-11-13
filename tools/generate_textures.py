@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Generates the mod's pixel-art textures. Run from the repository root: python3 tools/generate_textures.py"""
+import colorsys
+import math
 import os
 import random
 
@@ -587,6 +589,181 @@ def fat():
     return img
 
 
+VASILY_SKIN = (238, 200, 176)
+VASILY_SKIN_SHADE = (212, 168, 146)
+VASILY_SKIN_LIGHT = (248, 216, 196)
+VASILY_HAIR = (104, 78, 56)
+VASILY_HAIR_DARK = (78, 58, 42)
+SWEATPANTS = (158, 158, 162)
+SWEATPANTS_DARK = (128, 128, 134)
+# Hand-drawn face: heavy brown fringe swept across the forehead, half-closed eyes, pouting lips.
+VASILY_FACE = [
+    "hhhhhhhhhhhhhhhh",
+    "hhhHhhhhihhhHhhh",
+    "hhhhhhihhhhhhhhh",
+    "hhHhhhhhhhhhihhh",
+    "hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhshh",
+    "hhhhhHhhhhsssssh",
+    "hsbbbbssssbbbbss",
+    "ssddddssssddddss",
+    "ssswessssssewsss",
+    "ssssssssssssssss",
+    "sssssssnnsssssss",
+    "ssssssNnnNssssss",
+    "sssssmmmmmmsssss",
+    "ssssssMMMMssssss",
+    "jjjsssssssssjjjj",
+]
+VASILY_FACE_PALETTE = {
+    "h": VASILY_HAIR, "H": VASILY_HAIR_DARK, "i": (128, 98, 72), "s": VASILY_SKIN, "j": VASILY_SKIN_SHADE,
+    "b": (84, 62, 46), "d": (214, 172, 152), "w": (238, 236, 232), "e": (70, 96, 120),
+    "n": (222, 180, 158), "N": (186, 138, 120), "m": (206, 128, 122), "M": (176, 96, 96),
+}
+
+
+def vasily():
+    c = Canvas(size=64, seed=47)
+    head = faces(0, 0, 8, 8, 8)
+    c.box(head, VASILY_SKIN, 4)
+    c.fill(head["top"], VASILY_HAIR, 7)
+    for side in ("right", "left"):
+        c.fill(head[side], VASILY_HAIR, 7, rows=range(4))
+        ear_x = 4 if side == "right" else 3
+        c.px(head[side], ear_x, 4, VASILY_SKIN_SHADE)
+        c.px(head[side], ear_x, 5, VASILY_SKIN_SHADE)
+    c.fill(head["back"], VASILY_HAIR, 7, rows=range(5))
+    c.fill(head["bottom"], VASILY_SKIN_SHADE, 3)
+    # Outer layer: a thick mop of hair with the fringe hanging over the forehead.
+    mop = faces(32, 0, 8, 8, 8)
+    c.fill(mop["top"], VASILY_HAIR, 9)
+    c.fill(mop["front"], VASILY_HAIR, 9, rows=range(2))
+    c.fill(mop["front"], VASILY_HAIR_DARK, 6, rows=[2], cols=range(0, 5))
+    for side in ("right", "left"):
+        c.fill(mop[side], VASILY_HAIR, 9, rows=range(3))
+    c.fill(mop["back"], VASILY_HAIR, 9, rows=range(4))
+
+    # Bare torso: collarbones, chest and stomach shading; a strip of white waistband above the sweatpants.
+    body = faces(16, 16, 8, 12, 4)
+    c.box(body, VASILY_SKIN, 4)
+    front = body["front"]
+    c.fill(front, VASILY_SKIN_SHADE, 3, rows=[0], cols=[1, 2, 5, 6])
+    c.fill(front, VASILY_SKIN_LIGHT, 3, rows=[2, 3], cols=[1, 2, 5, 6])
+    c.fill(front, VASILY_SKIN_SHADE, 3, rows=[4], cols=[1, 2, 3, 4, 5, 6])
+    for y in (6, 8):
+        c.fill(front, VASILY_SKIN_SHADE, 3, rows=[y], cols=[2, 3, 4, 5])
+    for y in range(5, 10):
+        c.px(front, 3 if y % 2 else 4, y, VASILY_SKIN_SHADE)
+    c.px(front, 4, 9, (190, 142, 124))  # navel
+    c.fill(body["back"], VASILY_SKIN_SHADE, 3, cols=[3, 4], rows=range(1, 9))
+    for name in ("front", "back", "left", "right"):
+        c.fill(body[name], (236, 238, 244), 3, rows=[10])
+        c.fill(body[name], SWEATPANTS, 4, rows=[11])
+    c.px(front, 3, 10, (60, 110, 200))
+    c.px(front, 5, 10, (60, 110, 200))
+    c.fill(body["bottom"], SWEATPANTS, 4)
+
+    for u, v in ((40, 16), (32, 48)):
+        arm = faces(u, v, 4, 12, 4)
+        c.box(arm, VASILY_SKIN, 4)
+        for name in ("front", "back", "left", "right"):
+            c.fill(arm[name], VASILY_SKIN_LIGHT, 3, rows=[2, 3], cols=[1, 2])
+            c.fill(arm[name], VASILY_SKIN_SHADE, 3, rows=[9])
+            c.fill(arm[name], (228, 176, 160), 3, rows=[10, 11])  # reddened hands
+        c.fill(arm["bottom"], VASILY_SKIN_SHADE, 3)
+    for u, v in ((0, 16), (16, 48)):
+        leg = faces(u, v, 4, 12, 4)
+        c.box(leg, SWEATPANTS, 5)
+        for name in ("front", "back", "left", "right"):
+            c.fill(leg[name], SWEATPANTS_DARK, 4, rows=[0, 9])  # waistband and cuff
+            c.fill(leg[name], (232, 232, 234), 3, rows=[10])
+            c.fill(leg[name], (190, 190, 194), 3, rows=[11])
+        c.px(leg["front"], 3 if u == 0 else 0, 1, (226, 226, 230))  # drawstring
+        c.px(leg["front"], 3 if u == 0 else 0, 2, (226, 226, 230))
+        c.fill(leg["bottom"], (190, 190, 194), 3)
+
+    img = c.img.resize((128, 128), Image.NEAREST)
+    front = head["front"]
+    assert len(VASILY_FACE) == 16 and all(len(r) == 16 for r in VASILY_FACE)
+    for y, row in enumerate(VASILY_FACE):
+        for x, key in enumerate(row):
+            img.putpixel((front[0] * 2 + x, front[1] * 2 + y), VASILY_FACE_PALETTE[key] + (255,))
+    return img
+
+
+def cigarette(paper, filter_color, ember, crooked):
+    """A cigarette lying on the diagonal with its lit end at the top right and a wisp of smoke."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    rng = random.Random(5 if crooked else 3)
+    for i in range(11):
+        x, y = 2 + i, 13 - i + (1 if crooked and 4 <= i <= 6 else 0)
+        if i == 10:
+            color = ember
+        elif i == 9:
+            color = (96, 92, 90)  # ash
+        elif i < 3 and filter_color:
+            color = filter_color
+        else:
+            color = paper
+        for dx, dy in ((0, 0), (1, 0), (0, 1)) if crooked else ((0, 0), (1, 0)):
+            j = rng.randint(-10, 10) if crooked else rng.randint(-3, 3)
+            img.putpixel((x + dx, y + dy), tuple(max(0, min(255, v + j)) for v in color) + (255,))
+    for x, y, a in ((13, 1, 150), (12, 0, 110), (14, 0, 80)) if crooked else ((13, 1, 130), (12, 0, 90)):
+        img.putpixel((x, y), (190, 190, 190, a))
+    return img
+
+
+def vape():
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y in range(5, 14):
+        for x in range(6, 10):
+            edge = x in (6, 9) or y in (5, 13)
+            base = (70, 40, 130) if edge else (132, 84, 214)
+            if x == 7 and not edge:
+                base = (170, 128, 236)  # highlight
+            img.putpixel((x, y), base + (255,))
+    for y in range(2, 5):
+        for x in (7, 8):
+            img.putpixel((x, y), (28, 28, 34, 255))
+    img.putpixel((8, 11), (120, 255, 180, 255))  # LED
+    for x, y, a in ((9, 1, 140), (10, 0, 100), (6, 1, 90)):
+        img.putpixel((x, y), (230, 230, 240, a))
+    return img
+
+
+def snus():
+    """Round can seen from above: white lid, blue rim and a blue label band."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x - 7.5, y - 8.0)
+            if d > 6.4:
+                continue
+            if d > 5.3:
+                color = (30, 70, 150)
+            elif 6 <= y <= 9:
+                color = (44, 104, 200) if (x + y) % 5 else (236, 240, 248)
+            else:
+                color = (236, 238, 244) if x + y < 15 else (214, 218, 228)
+            img.putpixel((x, y), color + (255,))
+    return img
+
+
+def trip_icon():
+    """18x18 status effect icon: a rainbow spiral."""
+    img = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
+    for y in range(18):
+        for x in range(18):
+            dx, dy = x - 8.5, y - 8.5
+            d = math.hypot(dx, dy)
+            if d > 8.2:
+                continue
+            turn = (math.atan2(dy, dx) / (2 * math.pi) + d / 6.0) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(turn, 0.85, 1.0 if int(turn * 6) % 2 == 0 else 0.75)
+            img.putpixel((x, y), (int(r * 255), int(g * 255), int(b * 255), 255))
+    return img
+
+
 def main():
     os.makedirs(f"{OUT}/entity", exist_ok=True)
     base = kalabushkin()
@@ -598,6 +775,13 @@ def main():
     little_koch().save(f"{OUT}/entity/little_koch.png")
     os.makedirs(f"{OUT}/item", exist_ok=True)
     fat().save(f"{OUT}/item/fat.png")
+    vasily().save(f"{OUT}/entity/vasily.png")
+    cigarette((240, 238, 232), (214, 150, 70), (232, 84, 30), False).save(f"{OUT}/item/cigarette.png")
+    cigarette((206, 186, 140), None, (240, 60, 20), True).save(f"{OUT}/item/dyadkovo_cigarette.png")
+    vape().save(f"{OUT}/item/vape.png")
+    snus().save(f"{OUT}/item/snus.png")
+    os.makedirs(f"{OUT}/mob_effect", exist_ok=True)
+    trip_icon().save(f"{OUT}/mob_effect/trip.png")
 
 
 if __name__ == "__main__":

@@ -3,6 +3,8 @@ import java.util.Locale;
 
 import com.kalabushkin.client.LittleKochAnimations;
 import com.kalabushkin.client.LittleKochModel;
+import com.kalabushkin.client.VasilyAnimations;
+import com.kalabushkin.client.VasilyModel;
 import com.kalabushkin.client.VladLogutovAnimations;
 import com.kalabushkin.client.VladLogutovModel;
 import net.minecraft.client.model.ModelPart;
@@ -14,7 +16,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector3f;
 
 /**
- * Poses the Vlad Logutov and Little Koch models with the real Minecraft model classes and writes their quads to text
+ * Poses the Vlad Logutov, Little Koch and Vasily models with the real Minecraft model classes and writes their quads to text
  * files, so tools/preview/render_preview.py can draw it without starting the game.
  * Line format: pose name, then one "x y z u v nx ny nz" line per vertex, four per quad.
  */
@@ -37,6 +39,29 @@ public final class ModelDump {
 				animate(koch, LittleKochAnimations.WADDLE, (long) (time * 1000.0f), 1.0f);
 				dump("waddle" + time, koch);
 			}
+		}
+
+		VasilyModel vasily = new VasilyModel(VasilyModel.getTexturedModelData().createModel());
+		try (PrintWriter writer = new PrintWriter(args[0] + "/vasily.txt")) {
+			out = writer;
+			vasily.basePose(0.0f, 0.0f, 0.0f);
+			dump("stance", vasily);
+			vasily.basePose(0.0f, 0.0f, 0.0f);
+			animate(vasily, VasilyAnimations.SHAMBLE, 300L, 1.0f);
+			dump("shamble", vasily);
+			vasily.basePose(0.0f, 0.0f, 0.0f);
+			animate(vasily, VasilyAnimations.HANDSHAKE, 600L, 1.0f);
+			dump("handshake", vasily);
+			String[] gives = {"snus", "vape", "cigarette", "dyadkovo"};
+			long[] showTimes = {700L, 600L, 600L, 1100L};
+			for (int i = 0; i < gives.length; i++) {
+				vasily.basePose(0.0f, 0.0f, 0.0f);
+				animate(vasily, VasilyAnimations.GIVE[i], showTimes[i], 1.0f);
+				dump(gives[i], vasily);
+			}
+			vasily.basePose(0.0f, 0.0f, 0.0f);
+			animate(vasily, VasilyAnimations.GIVE[0], 1700L, 1.0f);
+			dump("handover", vasily);
 		}
 
 		VladLogutovModel model = new VladLogutovModel(VladLogutovModel.getTexturedModelData().createModel());

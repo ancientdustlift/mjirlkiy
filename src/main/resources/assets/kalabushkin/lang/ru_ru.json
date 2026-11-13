@@ -16,5 +16,17 @@
 	"item.kalabushkin.shatuni.two_handed": "Шатунам нужны обе руки: освободите вторую",
 	"entity.kalabushkin.little_koch": "Маленький Кох",
 	"item.kalabushkin.little_koch_spawn_egg": "Яйцо призыва Маленького Коха",
-	"item.kalabushkin.fat": "Жир"
+	"item.kalabushkin.fat": "Жир",
+	"entity.kalabushkin.vasily": "Василий",
+	"entity.kalabushkin.vasily.offer.snus": "Снюс будешь?",
+	"entity.kalabushkin.vasily.offer.vape": "Вейп будешь?",
+	"entity.kalabushkin.vasily.offer.cigarette": "Сигарету будешь?",
+	"entity.kalabushkin.vasily.offer.dyadkovo_cigarette": "Дятьковскую будешь?",
+	"item.kalabushkin.vasily_spawn_egg": "Яйцо призыва Василия",
+	"item.kalabushkin.snus": "Снюс",
+	"item.kalabushkin.vape": "Вейп",
+	"item.kalabushkin.cigarette": "Сигарета",
+	"item.kalabushkin.dyadkovo_cigarette": "Дятьковская сигарета",
+	"item.kalabushkin.nicotine.tooltip": "Ты об этом пожалеешь",
+	"effect.kalabushkin.trip": "Приход"
 }
