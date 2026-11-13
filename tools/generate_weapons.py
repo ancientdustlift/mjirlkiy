@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generates textures and item models (including swing and spin animation frames) for the carpenter's
-weapons and the Shatuni. Run from the repository root: python3 tools/generate_weapons.py
+weapons, the Shatuni and the things Vasily hands out. Run from the repository root: python3 tools/generate_weapons.py
 
 The swing animation is a strip of models picked by the "kalabushkin:swing" item predicate."""
 import json
@@ -250,6 +250,121 @@ def write_shatuni_models():
         json.dump(base, f, separators=(",", ":"))
 
 
+# ---------------------------------------------------------------- Vasily's wares
+
+def swatches(colors, seed, jitter=4):
+    """16x16 texture of four 4 px wide columns, one colour each, for model boxes to sample from."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    rng = random.Random(seed)
+    for i, color in enumerate(colors):
+        for y in range(16):
+            for x in range(4):
+                j = rng.randint(-jitter, jitter)
+                img.putpixel((4 * i + x, y), tuple(max(0, min(255, c + j)) for c in color) + (255,))
+    return img
+
+
+def swatch(i, w=1.0, h=1.0):
+    return [4 * i, 0, r(4 * i + min(w, 4)), r(min(h, 16))]
+
+
+def rod(cx, cz, y0, y1, thickness, i):
+    """Upright square rod whose sides and caps all sample swatch i."""
+    half = thickness / 2
+    side = swatch(i, thickness, y1 - y0)
+    cap = swatch(i, thickness, thickness)
+    return box([cx - half, y0, cz - half], [cx + half, y1, cz + half],
+               {"north": side, "south": side, "east": side, "west": side, "up": cap, "down": cap})
+
+
+def held_display(gui_rotation, gui_scale):
+    return {
+        "thirdperson_righthand": {"rotation": [0, -90, 10], "translation": [0, 4, 0.5], "scale": [0.85] * 3},
+        "firstperson_righthand": {"rotation": [0, -90, -20], "translation": [1.13, 3.0, 1.13], "scale": [0.6] * 3},
+        "gui": {"rotation": gui_rotation, "translation": [0, 0, 0], "scale": [gui_scale] * 3},
+        "ground": {"rotation": [0, 0, 90], "translation": [0, 2, 0], "scale": [0.5] * 3},
+        "fixed": {"rotation": [0, 180, 0], "scale": [0.9] * 3},
+    }
+
+
+def write_static_model(name, texture, elements, display):
+    texture.save(f"{ASSETS}/textures/item/{name}.png")
+    model = {"textures": {"0": f"kalabushkin:item/{name}", "particle": f"kalabushkin:item/{name}"},
+             "elements": elements, "display": display}
+    with open(f"{ASSETS}/models/item/{name}.json", "w") as f:
+        json.dump(model, f, separators=(",", ":"))
+
+
+def cigarette_model():
+    """Filter at the bottom, white paper, a ring of ash and the ember on top."""
+    texture = swatches([(240, 238, 232), (214, 150, 70), (120, 116, 114), (238, 84, 28)], 3)
+    for x, y in ((4, 1), (6, 2), (5, 0), (7, 1)):
+        texture.putpixel((x, y), (176, 116, 50, 255))  # cork speckles on the filter
+    elements = [rod(8, 8, 3, 6, 1.2, 1), rod(8, 8, 6, 12, 1.2, 0), rod(8, 8, 12, 12.6, 1.2, 2),
+                rod(8, 8, 12.6, 13.2, 1.0, 3)]
+    write_static_model("cigarette", texture, elements, held_display([0, -20, -45], 1.5))
+
+
+def dyadkovo_cigarette_model():
+    """Hand-rolled and lumpy: a twisted end, three uneven sections out of line, a fat ember."""
+    texture = swatches([(206, 186, 140), (168, 146, 104), (84, 80, 78), (244, 64, 20)], 5, jitter=10)
+    elements = [rod(8, 8, 3, 4, 0.8, 1), rod(8, 8, 4, 7.5, 1.4, 0), rod(8.35, 8, 7.5, 10.5, 1.7, 1),
+                rod(7.9, 8.2, 10.5, 12.5, 1.4, 0), rod(7.9, 8.2, 12.5, 13.3, 1.4, 2),
+                rod(7.9, 8.2, 13.3, 14, 1.1, 3)]
+    write_static_model("dyadkovo_cigarette", texture, elements, held_display([0, -20, -45], 1.5))
+
+
+def vape_model():
+    """Box mod: purple body with a fire button and LED, a glass tank and a black drip tip."""
+    texture = swatches([(132, 84, 214), (70, 74, 86), (24, 24, 30), (200, 204, 212)], 7)
+    for y in range(16):
+        texture.putpixel((1, y), (170, 128, 236, 255))  # highlight down the body
+        texture.putpixel((5, y), (120, 150, 190, 255) if y < 2 else (96, 102, 118, 255))  # liquid in the tank
+    for y in range(8, 16):
+        for x in range(12, 16):
+            texture.putpixel((x, y), (120, 255, 180, 255))  # LED green
+    body_wide, body_narrow = [0, 0, 3, 7], [0, 0, 2, 7]
+    tank = [4, 0, 6, 2.5]
+    elements = [
+        box([6.5, 2, 7], [9.5, 9, 9], {"north": body_wide, "south": body_wide, "east": body_narrow,
+                                       "west": body_narrow, "up": [0, 0, 3, 2], "down": [0, 0, 3, 2]}),
+        box([7, 9, 7], [9, 11.5, 9], {"north": tank, "south": tank, "east": tank, "west": tank,
+                                      "up": [6, 0, 8, 2], "down": [6, 0, 8, 2]}),
+        rod(8, 8, 11.5, 13.5, 1, 2),
+        box([7.5, 6.5, 6.7], [8.5, 7.5, 7], all_faces([12, 0, 13, 1])),
+        box([7.5, 3, 6.8], [8.5, 3.5, 7], all_faces([12, 8, 13, 9])),
+    ]
+    write_static_model("vape", texture, elements, held_display([20, -35, 0], 1.4))
+
+
+def snus_model():
+    """Round can lying flat, built as an octagon from three overlapping boxes."""
+    texture = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    rim, white, blue = (30, 70, 150), (236, 238, 244), (44, 104, 200)
+    for y in range(8):
+        for x in range(8):
+            if math.hypot(x - 3.5, y - 3.5) > 3.3:
+                color = rim
+            elif 3 <= y <= 4:
+                color = blue if (x + y) % 3 else white  # label band
+            else:
+                color = white if x + y < 8 else (214, 218, 228)
+            texture.putpixel((x, y), color + (255,))
+            texture.putpixel((x, y + 8), rim + (255,))  # underside
+    for x in range(8, 16):
+        for y, color in enumerate((white, blue, rim)):
+            texture.putpixel((x, y), color + (255,))  # side band
+    elements = []
+    for x0, x1, z0, z1 in ((4, 12, 5.5, 10.5), (5.5, 10.5, 4, 12), (4.7, 11.3, 4.7, 11.3)):
+        along_x, along_z = [8, 0, r(8 + x1 - x0), 3], [8, 0, r(8 + z1 - z0), 3]
+        # The lid texture covers the can's 8x8 footprint, so each box samples its own part of it.
+        lid = [r(x0 - 4), r(z0 - 4), r(x1 - 4), r(z1 - 4)]
+        elements.append(box([x0, 6.75, z0], [x1, 9.25, z1], {
+            "north": along_x, "south": along_x, "east": along_z, "west": along_z, "up": lid,
+            "down": [lid[0], r(lid[1] + 8), lid[2], r(lid[3] + 8)]}))
+    write_static_model("snus", texture, elements, held_display([30, 45, 0], 1.5))
+
+
 def main():
     os.makedirs(f"{ASSETS}/textures/item", exist_ok=True)
     os.makedirs(f"{ASSETS}/models/item", exist_ok=True)
@@ -259,6 +374,10 @@ def main():
     write_models("carpenter_plane", plane_elements, plane_display)
     shatuni_texture().save(f"{ASSETS}/textures/item/shatuni.png")
     write_shatuni_models()
+    cigarette_model()
+    dyadkovo_cigarette_model()
+    vape_model()
+    snus_model()
 
 
 if __name__ == "__main__":

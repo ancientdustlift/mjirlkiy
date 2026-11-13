@@ -589,36 +589,38 @@ def fat():
     return img
 
 
-VASILY_SKIN = (238, 200, 176)
-VASILY_SKIN_SHADE = (212, 168, 146)
-VASILY_SKIN_LIGHT = (248, 216, 196)
-VASILY_HAIR = (104, 78, 56)
-VASILY_HAIR_DARK = (78, 58, 42)
+VASILY_SKIN = (234, 190, 170)
+VASILY_SKIN_SHADE = (208, 160, 142)
+VASILY_SKIN_LIGHT = (244, 208, 190)
+VASILY_HAIR = (100, 84, 72)
+VASILY_HAIR_DARK = (74, 62, 54)
 SWEATPANTS = (158, 158, 162)
 SWEATPANTS_DARK = (128, 128, 134)
-# Hand-drawn face: heavy brown fringe swept across the forehead, half-closed eyes, pouting lips.
+# Hand-drawn face: short ash-brown hair with a straight, choppy fringe and hair down the temples,
+# low straight brows over narrow half-lidded eyes, broad nose, thin closed mouth with a slight smirk.
 VASILY_FACE = [
     "hhhhhhhhhhhhhhhh",
-    "hhhHhhhhihhhHhhh",
-    "hhhhhhihhhhhhhhh",
-    "hhHhhhhhhhhhihhh",
+    "hhHhhihhhhHhhihh",
     "hhhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhshh",
-    "hhhhhHhhhhsssssh",
-    "hsbbbbssssbbbbss",
-    "ssddddssssddddss",
-    "ssswessssssewsss",
-    "ssssssssssssssss",
+    "hhhihhHhhihhhHhh",
+    "hhsshsslsshsshhh",
+    "hsssllllllllsssh",
+    "hsbbbbssssbbbbsh",
+    "ssdwEssssssEwdss",
+    "ssssssslllssssss",
     "sssssssnnsssssss",
     "ssssssNnnNssssss",
-    "sssssmmmmmmsssss",
-    "ssssssMMMMssssss",
-    "jjjsssssssssjjjj",
+    "ssssssssssmsssss",
+    "ssssssMmmmssssss",
+    "sssssssjjsssssss",
+    "jssssssssssssssj",
+    "jjjjssssssssjjjj",
 ]
 VASILY_FACE_PALETTE = {
-    "h": VASILY_HAIR, "H": VASILY_HAIR_DARK, "i": (128, 98, 72), "s": VASILY_SKIN, "j": VASILY_SKIN_SHADE,
-    "b": (84, 62, 46), "d": (214, 172, 152), "w": (238, 236, 232), "e": (70, 96, 120),
-    "n": (222, 180, 158), "N": (186, 138, 120), "m": (206, 128, 122), "M": (176, 96, 96),
+    "h": VASILY_HAIR, "H": VASILY_HAIR_DARK, "i": (128, 108, 92), "s": VASILY_SKIN, "j": VASILY_SKIN_SHADE,
+    "l": VASILY_SKIN_LIGHT, "b": (92, 72, 60), "d": (196, 150, 134), "w": (216, 208, 202),
+    "E": (44, 40, 44), "e": (86, 100, 116), "n": (218, 172, 154), "N": (178, 128, 114),
+    "m": (186, 124, 116), "M": (160, 100, 96),
 }
 
 
@@ -634,13 +636,12 @@ def vasily():
         c.px(head[side], ear_x, 5, VASILY_SKIN_SHADE)
     c.fill(head["back"], VASILY_HAIR, 7, rows=range(5))
     c.fill(head["bottom"], VASILY_SKIN_SHADE, 3)
-    # Outer layer: a thick mop of hair with the fringe hanging over the forehead.
+    # Outer layer: short hair standing slightly proud of the head; the fringe's choppy edge is on the face.
     mop = faces(32, 0, 8, 8, 8)
     c.fill(mop["top"], VASILY_HAIR, 9)
     c.fill(mop["front"], VASILY_HAIR, 9, rows=range(2))
-    c.fill(mop["front"], VASILY_HAIR_DARK, 6, rows=[2], cols=range(0, 5))
     for side in ("right", "left"):
-        c.fill(mop[side], VASILY_HAIR, 9, rows=range(3))
+        c.fill(mop[side], VASILY_HAIR, 9, rows=range(2))
     c.fill(mop["back"], VASILY_HAIR, 9, rows=range(4))
 
     # Bare torso: collarbones, chest and stomach shading; a strip of white waistband above the sweatpants.
@@ -691,64 +692,6 @@ def vasily():
     return img
 
 
-def cigarette(paper, filter_color, ember, crooked):
-    """A cigarette lying on the diagonal with its lit end at the top right and a wisp of smoke."""
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    rng = random.Random(5 if crooked else 3)
-    for i in range(11):
-        x, y = 2 + i, 13 - i + (1 if crooked and 4 <= i <= 6 else 0)
-        if i == 10:
-            color = ember
-        elif i == 9:
-            color = (96, 92, 90)  # ash
-        elif i < 3 and filter_color:
-            color = filter_color
-        else:
-            color = paper
-        for dx, dy in ((0, 0), (1, 0), (0, 1)) if crooked else ((0, 0), (1, 0)):
-            j = rng.randint(-10, 10) if crooked else rng.randint(-3, 3)
-            img.putpixel((x + dx, y + dy), tuple(max(0, min(255, v + j)) for v in color) + (255,))
-    for x, y, a in ((13, 1, 150), (12, 0, 110), (14, 0, 80)) if crooked else ((13, 1, 130), (12, 0, 90)):
-        img.putpixel((x, y), (190, 190, 190, a))
-    return img
-
-
-def vape():
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    for y in range(5, 14):
-        for x in range(6, 10):
-            edge = x in (6, 9) or y in (5, 13)
-            base = (70, 40, 130) if edge else (132, 84, 214)
-            if x == 7 and not edge:
-                base = (170, 128, 236)  # highlight
-            img.putpixel((x, y), base + (255,))
-    for y in range(2, 5):
-        for x in (7, 8):
-            img.putpixel((x, y), (28, 28, 34, 255))
-    img.putpixel((8, 11), (120, 255, 180, 255))  # LED
-    for x, y, a in ((9, 1, 140), (10, 0, 100), (6, 1, 90)):
-        img.putpixel((x, y), (230, 230, 240, a))
-    return img
-
-
-def snus():
-    """Round can seen from above: white lid, blue rim and a blue label band."""
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    for y in range(16):
-        for x in range(16):
-            d = math.hypot(x - 7.5, y - 8.0)
-            if d > 6.4:
-                continue
-            if d > 5.3:
-                color = (30, 70, 150)
-            elif 6 <= y <= 9:
-                color = (44, 104, 200) if (x + y) % 5 else (236, 240, 248)
-            else:
-                color = (236, 238, 244) if x + y < 15 else (214, 218, 228)
-            img.putpixel((x, y), color + (255,))
-    return img
-
-
 def trip_icon():
     """18x18 status effect icon: a rainbow spiral."""
     img = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
@@ -776,10 +719,6 @@ def main():
     os.makedirs(f"{OUT}/item", exist_ok=True)
     fat().save(f"{OUT}/item/fat.png")
     vasily().save(f"{OUT}/entity/vasily.png")
-    cigarette((240, 238, 232), (214, 150, 70), (232, 84, 30), False).save(f"{OUT}/item/cigarette.png")
-    cigarette((206, 186, 140), None, (240, 60, 20), True).save(f"{OUT}/item/dyadkovo_cigarette.png")
-    vape().save(f"{OUT}/item/vape.png")
-    snus().save(f"{OUT}/item/snus.png")
     os.makedirs(f"{OUT}/mob_effect", exist_ok=True)
     trip_icon().save(f"{OUT}/mob_effect/trip.png")
 
