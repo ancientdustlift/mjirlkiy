@@ -1,22 +1,67 @@
 // Compares the original capture loop with the reworked one on the same machine.
 //
-// Build (MSVC):  cl /O2 /EHsc /std:c++17 capture_bench.cpp d3d11.lib dxgi.lib
+// Build (MSVC):  cl /O2 /EHsc /std:c++17 capture_bench.cpp
+//                (d3d11.lib and dxgi.lib are linked by the pragmas below; the linker looks
+//                for them in the folder you build from and then in the SDK paths)
 // Build (MinGW): g++ -O2 -std=c++17 capture_bench.cpp -o capture_bench.exe -ld3d11 -ldxgi -static
 // Run:           capture_bench.exe [seconds=10] [region=640] [rounds=2]
 //
 // Desktop duplication only delivers a frame when the screen changes, so run it while the
 // content you care about is animating on the primary monitor.
+// Results are printed and appended to capture_bench_results.txt next to the exe.
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi1_6.h>
 #include <wrl/client.h>
 #include <algorithm>
 #include <cstdint>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <cwchar>
 #include <vector>
 
+#ifdef _MSC_VER
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#endif
+
 using Microsoft::WRL::ComPtr;
+
+static FILE* gResults = nullptr;
+
+// Prints to the console and to the results file.
+static void Log(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    std::vprintf(format, args);
+    va_end(args);
+    std::fflush(stdout);
+    if (!gResults) return;
+    va_start(args, format);
+    std::vfprintf(gResults, format, args);
+    va_end(args);
+    std::fflush(gResults);
+}
+
+static void OpenResultsFile()
+{
+    static const wchar_t kName[] = L"capture_bench_results.txt";
+    wchar_t path[MAX_PATH + _countof(kName)]{};
+    const DWORD length = GetModuleFileNameW(nullptr, path, MAX_PATH);
+    if (!length || length >= MAX_PATH) return;
+    wchar_t* slash = std::wcsrchr(path, L'\\');
+    if (!slash) return;
+    std::wcscpy(slash + 1, kName);
+    gResults = _wfopen(path, L"a");
+    if (!gResults) return;
+    SYSTEMTIME now{}; GetLocalTime(&now);
+    std::fprintf(gResults, "\n=== %04u-%02u-%02u %02u:%02u:%02u ===\n",
+        unsigned(now.wYear), unsigned(now.wMonth), unsigned(now.wDay),
+        unsigned(now.wHour), unsigned(now.wMinute), unsigned(now.wSecond));
+}
 
 static double NowMs()
 {
@@ -198,7 +243,7 @@ struct Capture
 
 static void Print(const char* name, const Stats& s)
 {
-    std::printf("%-9s %8.1f fps  %7llu frames  %6llu missed  %7llu timeouts  %3llu lost  "
+    Log("%-9s %8.1f fps  %7llu frames  %6llu missed  %7llu timeouts  %3llu lost  "
         "%7.4f ms/frame  %5.1f%% cpu\n", name,
         double(s.frames) * 1000.0 / s.wallMs, (unsigned long long)s.frames,
         (unsigned long long)s.missed, (unsigned long long)s.timeouts, (unsigned long long)s.lost,
@@ -211,10 +256,11 @@ int main(int argc, char** argv)
     const UINT region = argc > 2 ? UINT(std::atoi(argv[2])) : 640u;
     const int rounds = argc > 3 ? std::atoi(argv[3]) : 2;
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    OpenResultsFile();
 
     DEVMODEW mode{}; mode.dmSize = sizeof(mode);
     if (EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode))
-        std::printf("primary display: %lux%lu @ %lu Hz, %g s per run, %ux%u region\n",
+        Log("primary display: %lux%lu @ %lu Hz, %g s per run, %ux%u region\n",
             mode.dmPelsWidth, mode.dmPelsHeight, mode.dmDisplayFrequency, seconds, region, region);
 
     // Alternate the two loops so drift in what is on screen affects both equally.
@@ -226,7 +272,7 @@ int main(int argc, char** argv)
             c.size = region;
             if (!c.CreateDevice() || !c.StartDuplication())
             {
-                std::printf("%s: setup failed\n", reworked ? "reworked" : "original");
+                Log("%s: setup failed\n", reworked ? "reworked" : "original");
                 return 1;
             }
             Print(reworked ? "reworked" : "original", c.Run(seconds));
