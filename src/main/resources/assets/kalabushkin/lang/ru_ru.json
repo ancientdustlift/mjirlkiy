@@ -13,5 +13,9 @@
 	"item.kalabushkin.blueprint": "Чертёж",
 	"item.kalabushkin.blueprint.tooltip": "Незаконченный проект Калабушкина",
 	"itemGroup.kalabushkin": "Калабушкин",
-	"message.kalabushkin.haunted": "Дух Калабушкина теперь следует за вами"
+	"message.kalabushkin.haunted": "Дух Калабушкина теперь следует за вами",
+	"item.kalabushkin.carpenter_plane": "Рубанок",
+	"item.kalabushkin.carpenter_plane.tooltip": "Снимает стружку с врагов",
+	"item.kalabushkin.wooden_mallet": "Киянка",
+	"item.kalabushkin.wooden_mallet.tooltip": "Достаточно одного хорошего удара"
 }

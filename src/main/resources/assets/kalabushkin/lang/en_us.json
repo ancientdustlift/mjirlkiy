@@ -13,5 +13,9 @@
 	"item.kalabushkin.blueprint": "Blueprint",
 	"item.kalabushkin.blueprint.tooltip": "An unfinished design by Kalabushkin",
 	"itemGroup.kalabushkin": "Kalabushkin",
-	"message.kalabushkin.haunted": "The spirit of Kalabushkin now follows you"
+	"message.kalabushkin.haunted": "The spirit of Kalabushkin now follows you",
+	"item.kalabushkin.carpenter_plane": "Carpenter's Plane",
+	"item.kalabushkin.carpenter_plane.tooltip": "Shaves the enemy down to size",
+	"item.kalabushkin.wooden_mallet": "Wooden Mallet",
+	"item.kalabushkin.wooden_mallet.tooltip": "One good knock is enough"
 }

@@ -1,6 +1,7 @@
 package com.kalabushkin;
 
 import com.kalabushkin.item.ArchitectToolItem;
+import com.kalabushkin.item.CarpenterWeaponItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
@@ -21,6 +22,11 @@ public final class ModItems {
 	public static final Item SET_SQUARE = tool("set_square");
 	public static final Item ARCHITECT_PENCIL = tool("architect_pencil");
 	public static final Item BLUEPRINT = tool("blueprint");
+
+	public static final Item CARPENTER_PLANE = register("carpenter_plane",
+			new CarpenterWeaponItem(CarpenterWeaponItem.Kind.PLANE, new Item.Settings()));
+	public static final Item WOODEN_MALLET = register("wooden_mallet",
+			new CarpenterWeaponItem(CarpenterWeaponItem.Kind.MALLET, new Item.Settings()));
 
 	public static final ItemGroup GROUP = Registry.register(Registries.ITEM_GROUP, Kalabushkin.id("main"),
 			FabricItemGroup.builder()
@@ -50,5 +56,9 @@ public final class ModItems {
 	public static void init() {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS)
 				.register(entries -> entries.add(KALABUSHKIN_SPAWN_EGG));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
+			entries.add(CARPENTER_PLANE);
+			entries.add(WOODEN_MALLET);
+		});
 	}
 }
