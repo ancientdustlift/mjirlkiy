@@ -459,37 +459,38 @@ def icon():
     return img.resize((128, 128), Image.NEAREST)
 
 
-KOCH_SKIN = (240, 198, 178)
-KOCH_SKIN_SHADE = (214, 166, 148)
-KOCH_HAIR = (146, 112, 88)
-KOCH_HAIR_DARK = (120, 90, 70)
+KOCH_SKIN = (246, 196, 174)
+KOCH_SKIN_SHADE = (216, 162, 144)
+KOCH_HAIR = (124, 88, 64)
+KOCH_HAIR_DARK = (98, 66, 48)
 TEE_RED = (196, 36, 40)
 TEE_RED_DARK = (150, 24, 30)
 TEE_PRINT = (112, 104, 108)
 TEE_PRINT_DARK = (78, 72, 78)
-# Hand-drawn face: cropped light-brown hair, round cheeks, wide smile.
+# Hand-drawn face: short brown fringe with a low arched hairline, eyes squeezed into slits by the
+# smile, full rosy cheeks pushed up under them, broad nose, wide open smile showing teeth.
 KOCH_FACE = [
     "hhhhhhhhhhhhhhhh",
-    "hhHhhhhhhhhhhHhh",
-    "hhhhhhhhhhhhhhhh",
-    "hhsssllllllssshh",
-    "hssssssssssssssh",
-    "ssbbbbssssbbbbss",
-    "sssweessssweesss",
-    "ssssssssssssssss",
-    "scccsssnnssscccs",
-    "sccccsnssnsccccs",
-    "sscccsssssscccss",
-    "ssmssssssssssmss",
-    "sssmttttttttmsss",
-    "ssssmmmmmmmmssss",
+    "hhhHhhhhhhhhHhhh",
+    "hhhhssssssssshhh",
+    "hhssslllllllsshh",
+    "hsssssllllsssssh",
+    "hsbbbbssssbbbbsh",
+    "ssdDddssssddDdss",
+    "ssslllsssslllsss",
+    "scccccsnnscccccs",
+    "sccccsNnnNsccccs",
+    "sssmssssssssmsss",
+    "ssssmttttttmssss",
+    "sssssmttttmsssss",
+    "ssssssmmmmssssss",
     "jssssssssssssssj",
-    "jjjssssssssssjjj",
+    "jjjjssssssssjjjj",
 ]
 KOCH_FACE_PALETTE = {
-    "h": KOCH_HAIR, "H": KOCH_HAIR_DARK, "s": KOCH_SKIN, "l": (250, 216, 200), "c": (240, 172, 160),
-    "j": KOCH_SKIN_SHADE, "b": (124, 92, 72), "w": (240, 238, 234), "e": (96, 124, 150),
-    "n": (218, 166, 150), "m": (176, 96, 92), "t": (246, 244, 240),
+    "h": KOCH_HAIR, "H": KOCH_HAIR_DARK, "s": KOCH_SKIN, "l": (254, 214, 196), "c": (238, 164, 150),
+    "j": KOCH_SKIN_SHADE, "b": (166, 114, 94), "d": (112, 66, 56), "D": (74, 42, 38),
+    "n": (226, 170, 152), "N": (184, 122, 108), "m": (172, 92, 86), "t": (246, 240, 232),
 }
 
 
