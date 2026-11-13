@@ -36,6 +36,8 @@ public final class ModItems {
 
 	public static final Item VASILY_SPAWN_EGG = register("vasily_spawn_egg",
 			new SpawnEggItem(ModEntities.VASILY, 0xE8BFA6, 0x9A9A9E, new Item.Settings()));
+	public static final Item BARSIK_SPAWN_EGG = register("barsik_spawn_egg",
+			new SpawnEggItem(ModEntities.BARSIK, 0x7C6E5E, 0x362F29, new Item.Settings()));
 	public static final Item SNUS = nicotineItem(NicotineItem.Kind.SNUS);
 	public static final Item VAPE = nicotineItem(NicotineItem.Kind.VAPE);
 	public static final Item CIGARETTE = nicotineItem(NicotineItem.Kind.CIGARETTE);
@@ -50,6 +52,7 @@ public final class ModItems {
 						entries.add(VLAD_LOGUTOV_SPAWN_EGG);
 						entries.add(LITTLE_KOCH_SPAWN_EGG);
 						entries.add(VASILY_SPAWN_EGG);
+						entries.add(BARSIK_SPAWN_EGG);
 						entries.add(SHATUNI);
 						entries.add(CARPENTER_PLANE);
 						entries.add(WOODEN_MALLET);
@@ -88,6 +91,7 @@ public final class ModItems {
 					entries.add(VLAD_LOGUTOV_SPAWN_EGG);
 					entries.add(LITTLE_KOCH_SPAWN_EGG);
 					entries.add(VASILY_SPAWN_EGG);
+					entries.add(BARSIK_SPAWN_EGG);
 				});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(entries -> entries.add(FAT));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {

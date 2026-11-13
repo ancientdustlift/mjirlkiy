@@ -1,6 +1,8 @@
 import java.io.PrintWriter;
 import java.util.Locale;
 
+import com.kalabushkin.client.BarsikAnimations;
+import com.kalabushkin.client.BarsikModel;
 import com.kalabushkin.client.LittleKochAnimations;
 import com.kalabushkin.client.LittleKochModel;
 import com.kalabushkin.client.VasilyAnimations;
@@ -16,7 +18,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector3f;
 
 /**
- * Poses the Vlad Logutov, Little Koch and Vasily models with the real Minecraft model classes and writes their quads to text
+ * Poses the Vlad Logutov, Little Koch, Vasily and Barsik models with the real Minecraft model classes and writes their quads to text
  * files, so tools/preview/render_preview.py can draw it without starting the game.
  * Line format: pose name, then one "x y z u v nx ny nz" line per vertex, four per quad.
  */
@@ -39,6 +41,32 @@ public final class ModelDump {
 				animate(koch, LittleKochAnimations.WADDLE, (long) (time * 1000.0f), 1.0f);
 				dump("waddle" + time, koch);
 			}
+		}
+
+		BarsikModel barsik = new BarsikModel(BarsikModel.getTexturedModelData().createModel());
+		try (PrintWriter writer = new PrintWriter(args[0] + "/barsik.txt")) {
+			out = writer;
+			barsik.pose(false, 0.0f, 0.0f);
+			dump("stand", barsik);
+			barsik.pose(false, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.WALK, 250L, 1.0f);
+			dump("walk", barsik);
+			barsik.pose(false, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.HIDE, 1000L, 1.0f);
+			dump("hide", barsik);
+			barsik.pose(false, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.HIDE, 2800L, 1.0f);
+			dump("peek", barsik);
+			barsik.pose(true, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.PARACHUTE, 0L, 1.0f);
+			animate(barsik, BarsikAnimations.DEPLOY, 150L, 1.0f);
+			dump("deploy", barsik);
+			barsik.pose(true, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.PARACHUTE, 500L, 1.0f);
+			dump("parachute", barsik);
+			barsik.pose(false, 0.0f, 0.0f);
+			animate(barsik, BarsikAnimations.LAND, 120L, 1.0f);
+			dump("land", barsik);
 		}
 
 		VasilyModel vasily = new VasilyModel(VasilyModel.getTexturedModelData().createModel());

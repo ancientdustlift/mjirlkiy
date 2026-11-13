@@ -1,5 +1,6 @@
 package com.kalabushkin;
 
+import com.kalabushkin.entity.BarsikEntity;
 import com.kalabushkin.entity.KalabushkinEntity;
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
 import com.kalabushkin.entity.LittleKochEntity;
@@ -69,6 +70,15 @@ public final class ModEntities {
 					.maxTrackingRange(10)
 					.build());
 
+	public static final EntityType<BarsikEntity> BARSIK = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("barsik"),
+			EntityType.Builder.create(BarsikEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.8f, 0.9f)
+					.eyeHeight(0.6f)
+					.maxTrackingRange(10)
+					.build());
+
 	private ModEntities() {
 	}
 
@@ -79,6 +89,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(VLAD_LOGUTOV, VladLogutovEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(LITTLE_KOCH, LittleKochEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VASILY, VasilyEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(BARSIK, BarsikEntity.createAttributes());
 
 		SpawnRestriction.register(KALABUSHKIN, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, KalabushkinEntity::canSpawnHere);
@@ -102,5 +113,11 @@ public final class ModEntities {
 				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.FOREST, BiomeKeys.BIRCH_FOREST,
 						BiomeKeys.TAIGA),
 				SpawnGroup.CREATURE, VASILY, 3, 1, 1);
+
+		SpawnRestriction.register(BARSIK, SpawnLocationTypes.ON_GROUND,
+				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, BarsikEntity::canSpawnHere);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.MEADOW, BiomeKeys.FOREST, BiomeKeys.TAIGA),
+				SpawnGroup.CREATURE, BARSIK, 3, 1, 1);
 	}
 }

@@ -28,5 +28,7 @@
 	"item.kalabushkin.cigarette": "Сигарета",
 	"item.kalabushkin.dyadkovo_cigarette": "Дятьковская сигарета",
 	"item.kalabushkin.nicotine.tooltip": "Ты об этом пожалеешь",
-	"effect.kalabushkin.trip": "Приход"
+	"effect.kalabushkin.trip": "Приход",
+	"entity.kalabushkin.barsik": "Барсик",
+	"item.kalabushkin.barsik_spawn_egg": "Яйцо призыва Барсика"
 }

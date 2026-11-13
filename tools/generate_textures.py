@@ -693,6 +693,154 @@ def vasily():
     return img
 
 
+TABBY = (112, 100, 88)
+TABBY_STRIPE = (54, 47, 41)
+TABBY_DARK = (86, 76, 66)
+TABBY_LIGHT = (152, 138, 120)
+TABBY_CREAM = (214, 204, 186)
+TABBY_WHITE = (238, 236, 230)
+KHAKI = (118, 112, 70)
+CANOPY_BLUE = (70, 140, 220)
+CANOPY_WHITE = (240, 242, 246)
+# Hand-drawn 16x14 face: striped forehead with the tabby "M", green-yellow eyes with slit pupils,
+# white muzzle, cheeks and chin, dark cheek stripes.
+BARSIK_FACE = [
+    "ffffdffddffdffff",
+    "fffdffdffdffdfff",
+    "ffdffdffffdffdff",
+    "ffllllffffllllff",
+    "fdKKKKlffllKKKdf",
+    "fleGGelffleGGelf",
+    "fdllllfffflllldf",
+    "ddfllwwwwwwllfdd",
+    "fdfwwwwwwwwwwfdf",
+    "ffwwwwwwwwwwwwff",
+    "dfwwwwwwwwwwwwfd",
+    "ffdwwwwwwwwwwdff",
+    "fdffwwwwwwwwffdf",
+    "ffdfffwwwwfffdff",
+]
+# Front of the muzzle block: pink-brown nose, mouth line and whisker dots.
+BARSIK_MUZZLE = [
+    "wwwnnwww",
+    "wqwmmwqw",
+    "wwmwwmww",
+    "wwwwwwww",
+]
+BARSIK_PALETTE = {
+    "f": TABBY, "d": TABBY_STRIPE, "l": TABBY_LIGHT, "K": (40, 34, 30), "e": (176, 186, 84),
+    "G": (22, 22, 20), "w": TABBY_WHITE, "n": (156, 98, 92), "m": (96, 70, 66), "q": (200, 196, 190),
+}
+
+
+def barsik():
+    """256x256 image for a 128x128 model texture, so every model pixel is 2x2 texture pixels."""
+    img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    rng = random.Random(61)
+
+    def box(u, v, w, h, d):
+        return faces(2 * u, 2 * v, 2 * w, 2 * h, 2 * d)
+
+    def paint(rect, color_at, jitter=5):
+        for y in range(rect[3]):
+            for x in range(rect[2]):
+                j = rng.randint(-jitter, jitter)
+                color = color_at(x, y)
+                img.putpixel((rect[0] + x, rect[1] + y), tuple(max(0, min(255, c + j)) for c in color) + (255,))
+
+    def flat(color):
+        return lambda x, y: color
+
+    def grid(rect, rows):
+        for y, row in enumerate(rows):
+            for x, key in enumerate(row):
+                img.putpixel((rect[0] + x, rect[1] + y), BARSIK_PALETTE[key] + (255,))
+
+    body = box(0, 0, 12, 9, 14)
+    # Back: a dark spine with chevron stripes running off it.
+    paint(body["top"], lambda x, y: TABBY_STRIPE if x in (11, 12) or (y + abs(2 * x - 23) // 5) % 6 < 2 else TABBY)
+    for side in ("right", "left"):
+        paint(body[side], lambda x, y: TABBY_LIGHT if y >= 14 else
+              TABBY_STRIPE if (x + y // 3) % 6 < 2 else TABBY)
+    paint(body["front"], lambda x, y: TABBY_CREAM if 8 <= x < 16 and y >= 9 else TABBY)
+    paint(body["back"], lambda x, y: TABBY_STRIPE if y % 6 < 2 and y < 14 else TABBY)
+    paint(body["bottom"], flat(TABBY_CREAM))
+    belly = box(0, 36, 11, 2, 10)
+    for name, rect in belly.items():
+        paint(rect, flat(TABBY_CREAM if name == "bottom" else TABBY_LIGHT))
+
+    head = box(0, 23, 8, 7, 6)
+    paint(head["top"], lambda x, y: TABBY_STRIPE if x in (2, 3, 7, 8, 12, 13) else TABBY)
+    for side in ("right", "left"):
+        # Cheek stripes sweep back from the eye; 'right' has the face on its right edge.
+        paint(head[side], lambda x, y, side=side: TABBY_STRIPE
+              if y in (5, 6, 9, 10) and (x >= 3 if side == "right" else x <= 8) else TABBY)
+    paint(head["back"], lambda x, y: TABBY_STRIPE if y % 5 < 2 else TABBY)
+    paint(head["bottom"], flat(TABBY_WHITE))
+    grid(head["front"], BARSIK_FACE)
+    for u, v in ((52, 0), (52, 3)):
+        ear = box(u, v, 2, 2, 1)
+        for rect in ear.values():
+            paint(rect, flat(TABBY_DARK))
+        for x, y in ((1, 2), (2, 2), (1, 3), (2, 3), (1, 1), (2, 1)):
+            img.putpixel((ear["front"][0] + x, ear["front"][1] + y), (176, 132, 122, 255))
+    muzzle = box(52, 6, 4, 2, 1)
+    for rect in muzzle.values():
+        paint(rect, flat(TABBY_WHITE), 3)
+    grid(muzzle["front"], BARSIK_MUZZLE)
+
+    for u, v in ((28, 23), (40, 23), (28, 29), (40, 29)):
+        leg = box(u, v, 3, 3, 3)
+        for name in ("front", "back", "left", "right"):
+            paint(leg[name], lambda x, y: TABBY_STRIPE if y in (1, 2) else TABBY_LIGHT if y >= 4 else TABBY)
+        paint(leg["top"], flat(TABBY))
+        paint(leg["bottom"], flat((128, 96, 90)))  # paw pads
+    for (u, v, length), tip in (((42, 36, 7), False), ((0, 48, 5), True)):
+        tail = box(u, v, 2, 2, length)
+        # The tail runs along the box's depth: that is x on its sides and y on its top and bottom.
+        for name in ("right", "left"):
+            paint(tail[name], lambda x, y, tip=tip: TABBY_STRIPE if tip or x % 5 < 2 else TABBY)
+        for name in ("top", "bottom"):
+            paint(tail[name], lambda x, y, tip=tip: TABBY_STRIPE if tip or y % 5 < 2 else TABBY)
+        paint(tail["front"], flat(TABBY))
+        paint(tail["back"], flat(TABBY_STRIPE))
+
+    leather, brass, glass = (96, 62, 38), (190, 150, 60), (112, 182, 216)
+    for rect in box(14, 48, 8, 2, 6).values():
+        paint(rect, flat(leather), 4)
+    for u in (42, 50):
+        lens = box(u, 48, 3, 3, 1)
+        for rect in lens.values():
+            paint(rect, flat(brass), 4)
+        paint(lens["front"], lambda x, y: brass if x in (0, 5) or y in (0, 5) else
+              (230, 244, 250) if (x, y) in ((1, 1), (2, 1), (1, 2)) else glass, 3)
+
+    harness = box(88, 64, 12, 9, 3)
+    for rect in harness.values():
+        paint(rect, flat(KHAKI), 6)
+    paint(harness["top"], lambda x, y: (176, 178, 184) if 10 <= x < 14 and 1 <= y < 5 else KHAKI, 4)  # buckle
+    for rect in box(88, 76, 6, 2, 4).values():
+        paint(rect, flat((92, 88, 56)), 6)
+    for rect in box(120, 64, 1, 22, 1).values():
+        paint(rect, flat((64, 64, 70)), 3)
+
+    def gores(size):
+        """Eight alternating blue and white gores radiating from the centre of a square panel."""
+        c = (size - 1) / 2
+        return lambda x, y: CANOPY_BLUE if int((math.atan2(y - c, x - c) + math.pi) / (2 * math.pi) * 8) % 2 else CANOPY_WHITE
+
+    def darker(color_at):
+        return lambda x, y: tuple(int(c * 0.72) for c in color_at(x, y))
+
+    for (u, v, w, h), band in (((0, 64, 22, 4), 11), ((0, 90, 16, 2), 8)):
+        canopy = box(u, v, w, h, w)
+        paint(canopy["top"], gores(2 * w), 4)
+        paint(canopy["bottom"], darker(gores(2 * w)), 4)
+        for name in ("front", "back", "left", "right"):
+            paint(canopy[name], lambda x, y, band=band: CANOPY_BLUE if (x // band) % 2 else CANOPY_WHITE, 4)
+    return img
+
+
 def trip_icon():
     """18x18 status effect icon: a rainbow spiral."""
     img = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
@@ -720,6 +868,7 @@ def main():
     os.makedirs(f"{OUT}/item", exist_ok=True)
     fat().save(f"{OUT}/item/fat.png")
     vasily().save(f"{OUT}/entity/vasily.png")
+    barsik().save(f"{OUT}/entity/barsik.png")
     os.makedirs(f"{OUT}/mob_effect", exist_ok=True)
     trip_icon().save(f"{OUT}/mob_effect/trip.png")
 

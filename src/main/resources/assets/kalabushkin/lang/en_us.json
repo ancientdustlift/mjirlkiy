@@ -28,5 +28,7 @@
 	"item.kalabushkin.cigarette": "Cigarette",
 	"item.kalabushkin.dyadkovo_cigarette": "Dyadkovo Cigarette",
 	"item.kalabushkin.nicotine.tooltip": "You will regret this",
-	"effect.kalabushkin.trip": "Trip"
+	"effect.kalabushkin.trip": "Trip",
+	"entity.kalabushkin.barsik": "Barsik",
+	"item.kalabushkin.barsik_spawn_egg": "Barsik Spawn Egg"
 }
