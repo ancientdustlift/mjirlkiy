@@ -3,12 +3,15 @@ package com.kalabushkin.client;
 import com.kalabushkin.Kalabushkin;
 import com.kalabushkin.ModEntities;
 import com.kalabushkin.ModItems;
+import com.kalabushkin.network.FistBumpPayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.entity.Entity;
 
 public class KalabushkinClient implements ClientModInitializer {
 	@Override
@@ -28,5 +31,12 @@ public class KalabushkinClient implements ClientModInitializer {
 		};
 		ModelPredicateProviderRegistry.register(ModItems.CARPENTER_PLANE, Kalabushkin.id("swing"), swing);
 		ModelPredicateProviderRegistry.register(ModItems.WOODEN_MALLET, Kalabushkin.id("swing"), swing);
+
+		ClientPlayNetworking.registerGlobalReceiver(FistBumpPayload.ID, (payload, context) -> {
+			Entity entity = context.client().world == null ? null : context.client().world.getEntityById(payload.entityId());
+			if (entity != null) {
+				FistBumpAnimator.start(entity);
+			}
+		});
 	}
 }

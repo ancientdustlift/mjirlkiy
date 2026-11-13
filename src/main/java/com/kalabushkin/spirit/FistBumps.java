@@ -1,8 +1,11 @@
 package com.kalabushkin.spirit;
 
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
+import com.kalabushkin.network.FistBumpPayload;
 import java.util.Map;
 import java.util.WeakHashMap;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
@@ -37,7 +40,8 @@ public final class FistBumps {
 
 		mob.getNavigation().stop();
 		mob.getLookControl().lookAt(player, 60.0f, 60.0f);
-		mob.getJumpControl().setActive();
+		FistBumpPayload payload = new FistBumpPayload(mob.getId());
+		PlayerLookup.tracking(mob).forEach(watcher -> ServerPlayNetworking.send(watcher, payload));
 
 		Vec3d chest = new Vec3d(mob.getX(), mob.getBodyY(0.6), mob.getZ());
 		Vec3d fist = player.getEyePos().add(0.0, -0.3, 0.0).lerp(chest, 0.5);

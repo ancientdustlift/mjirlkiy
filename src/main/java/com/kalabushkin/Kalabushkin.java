@@ -1,7 +1,9 @@
 package com.kalabushkin;
 
+import com.kalabushkin.network.FistBumpPayload;
 import com.kalabushkin.spirit.SpiritManager;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.util.Identifier;
 
 public class Kalabushkin implements ModInitializer {
@@ -16,5 +18,6 @@ public class Kalabushkin implements ModInitializer {
 		ModEntities.init();
 		ModItems.init();
 		SpiritManager.init();
+		PayloadTypeRegistry.playS2C().register(FistBumpPayload.ID, FistBumpPayload.CODEC);
 	}
 }
