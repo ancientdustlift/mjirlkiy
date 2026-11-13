@@ -467,8 +467,8 @@ TEE_RED = (196, 36, 40)
 TEE_RED_DARK = (150, 24, 30)
 TEE_PRINT = (112, 104, 108)
 TEE_PRINT_DARK = (78, 72, 78)
-# Hand-drawn face: short brown fringe with a low arched hairline, eyes squeezed into slits by the
-# smile, full rosy cheeks pushed up under them, broad nose, wide open smile showing teeth.
+# Hand-drawn face: short brown fringe with a low arched hairline, open grey-blue eyes,
+# full rosy cheeks, broad nose, wide open smile showing teeth.
 KOCH_FACE = [
     "hhhhhhhhhhhhhhhh",
     "hhhHhhhhhhhhHhhh",
@@ -476,7 +476,7 @@ KOCH_FACE = [
     "hhssslllllllsshh",
     "hsssssllllsssssh",
     "hsbbbbssssbbbbsh",
-    "ssdDddssssddDdss",
+    "sssweessssweesss",
     "ssslllsssslllsss",
     "scccccsnnscccccs",
     "sccccsNnnNsccccs",
@@ -489,7 +489,7 @@ KOCH_FACE = [
 ]
 KOCH_FACE_PALETTE = {
     "h": KOCH_HAIR, "H": KOCH_HAIR_DARK, "s": KOCH_SKIN, "l": (254, 214, 196), "c": (238, 164, 150),
-    "j": KOCH_SKIN_SHADE, "b": (166, 114, 94), "d": (112, 66, 56), "D": (74, 42, 38),
+    "j": KOCH_SKIN_SHADE, "b": (166, 114, 94), "w": (240, 238, 234), "e": (96, 124, 150),
     "n": (226, 170, 152), "N": (184, 122, 108), "m": (172, 92, 86), "t": (246, 240, 232),
 }
 
