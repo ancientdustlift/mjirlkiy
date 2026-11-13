@@ -343,10 +343,13 @@ ITEMS = {
 }
 
 
-VLAD_SKIN = (234, 192, 168)
-VLAD_SKIN_SHADE = (212, 164, 142)
-VLAD_HAIR = (62, 46, 38)
-VLAD_HAIR_DARK = (44, 32, 28)
+VLAD_SKIN = (236, 186, 172)
+VLAD_SKIN_SHADE = (206, 154, 140)
+VLAD_HAIR = (56, 40, 30)
+VLAD_HAIR_DARK = (38, 28, 20)
+# The entity texture is drawn on a 128 px grid and saved 4x larger so the face can carry more detail.
+VLAD_DETAIL = 4
+VLAD_FACE = os.path.join(os.path.dirname(__file__), "vlad_face.png")
 JACKET = (84, 124, 122)
 JACKET_DARK = (60, 94, 94)
 HOOD = (30, 34, 42)
@@ -377,33 +380,12 @@ def paint_vlad_head(c):
     c.fill(f["back"], VLAD_HAIR_DARK, 4, rows=[3])
     c.fill(f["bottom"], VLAD_SKIN_SHADE, 3)
 
-    face = f["front"]
-    c.fill(face, VLAD_HAIR, 6, rows=[0])
-    for x in (0, 1, 6, 7):
-        c.px(face, x, 1, VLAD_HAIR, 6)
-    for x in (1, 2, 5, 6):
-        c.px(face, x, 2, VLAD_HAIR_DARK)  # brows
-    c.px(face, 1, 3, (240, 240, 240))
-    c.px(face, 2, 3, (58, 44, 40))
-    c.px(face, 5, 3, (58, 44, 40))
-    c.px(face, 6, 3, (240, 240, 240))
-    # Closed-mouth grin with raised corners.
-    for x in range(2, 6):
-        c.px(face, x, 6, (158, 92, 86))
-    c.px(face, 1, 5, (222, 150, 136))
-    c.px(face, 6, 5, (222, 150, 136))
-
-    # Outer layer: only the hair, with the fringe standing up a little.
+    # The front is replaced by the detailed face in vlad_logutov(); the outer layer only adds hair volume.
     hair = faces(32, 0, 8, 8, 8)
     c.fill(hair["top"], VLAD_HAIR, 8)
-    c.fill(hair["front"], VLAD_HAIR, 8, rows=[0])
-    c.fill(hair["front"], VLAD_HAIR_DARK, 5, rows=[1], cols=range(2, 6))
     for side in ("right", "left"):
         c.fill(hair[side], VLAD_HAIR, 8, rows=range(2))
     c.fill(hair["back"], VLAD_HAIR, 8, rows=range(3))
-
-    c.box(faces(24, 0, 2, 2, 1), VLAD_SKIN_SHADE, 2)  # nose
-
 
 def paint_vlad_body(c):
     f = faces(16, 16, 8, 12, 4)
@@ -494,7 +476,13 @@ def vlad_logutov():
     paint_vlad_leg(c, 64)
     paint_vlad_leg(c, 80)
     paint_bike(c)
-    return c.img
+    img = c.img.resize((128 * VLAD_DETAIL, 128 * VLAD_DETAIL), Image.NEAREST)
+    # 32x32 face taken from a reference photo; it covers the 8x8 front of the head cuboid.
+    face = Image.open(VLAD_FACE).convert("RGBA")
+    assert face.size == (8 * VLAD_DETAIL, 8 * VLAD_DETAIL)
+    front = faces(0, 0, 8, 8, 8)["front"]
+    img.paste(face, (front[0] * VLAD_DETAIL, front[1] * VLAD_DETAIL))
+    return img
 
 
 ICON = [

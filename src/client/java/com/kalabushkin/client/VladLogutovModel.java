@@ -193,8 +193,7 @@ public class VladLogutovModel extends SinglePartEntityModel<VladLogutovEntity> {
 		rider.addChild("head",
 				ModelPartBuilder.create()
 						.uv(0, 0).cuboid(-4.0f, -8.0f, -4.0f, 8.0f, 8.0f, 8.0f)
-						.uv(32, 0).cuboid(-4.0f, -8.0f, -4.0f, 8.0f, 8.0f, 8.0f, new Dilation(0.3f))
-						.uv(24, 0).cuboid(-1.0f, -4.0f, -5.0f, 2.0f, 2.0f, 1.0f),
+						.uv(32, 0).cuboid(-4.0f, -8.0f, -4.0f, 8.0f, 8.0f, 8.0f, new Dilation(0.3f)),
 				ModelTransform.pivot(0.0f, HIP_Y - TORSO, HIP_Z));
 		addLeg(rider, "right", -HIP_X, 64);
 		addLeg(rider, "left", HIP_X, 80);
