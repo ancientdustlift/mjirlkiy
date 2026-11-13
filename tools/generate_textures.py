@@ -596,30 +596,31 @@ VASILY_HAIR = (100, 84, 72)
 VASILY_HAIR_DARK = (74, 62, 54)
 SWEATPANTS = (158, 158, 162)
 SWEATPANTS_DARK = (128, 128, 134)
-# Hand-drawn face: short ash-brown hair with a straight, choppy fringe and hair down the temples,
-# low straight brows over narrow half-lidded eyes, broad nose, thin closed mouth with a slight smirk.
+# Hand-drawn face: short ash-brown hair with a straight, choppy fringe, low straight brows over
+# large grey-blue eyes, broad nose, thin closed mouth with a slight smirk. Hair down the temples and
+# shaded cheek and jaw edges make the face read narrower than the square head it is drawn on.
 VASILY_FACE = [
     "hhhhhhhhhhhhhhhh",
     "hhHhhihhhhHhhihh",
     "hhhhhhhhhhhhhhhh",
     "hhhihhHhhihhhHhh",
-    "hhsshsslsshsshhh",
-    "hsssllllllllsssh",
-    "hsbbbbssssbbbbsh",
-    "ssdwEssssssEwdss",
-    "ssssssslllssssss",
-    "sssssssnnsssssss",
-    "ssssssNnnNssssss",
-    "ssssssssssmsssss",
-    "ssssssMmmmssssss",
-    "sssssssjjsssssss",
-    "jssssssssssssssj",
-    "jjjjssssssssjjjj",
+    "hhhshsslsshsshhh",
+    "hhssllllllllsshh",
+    "hjbbbbssssbbbbjh",
+    "hjswEEssssEEwsjh",
+    "hjsweesssseewsjh",
+    "JjssssslllssssjJ",
+    "JjsssssnnsssssjJ",
+    "JjssssNnnNssssjJ",
+    "JjjsssssssmssjjJ",
+    "JjjsssMmmmsssjjJ",
+    "JJjjsssjjsssjjJJ",
+    "JJJjjssssssjjJJJ",
 ]
 VASILY_FACE_PALETTE = {
     "h": VASILY_HAIR, "H": VASILY_HAIR_DARK, "i": (128, 108, 92), "s": VASILY_SKIN, "j": VASILY_SKIN_SHADE,
-    "l": VASILY_SKIN_LIGHT, "b": (92, 72, 60), "d": (196, 150, 134), "w": (216, 208, 202),
-    "E": (44, 40, 44), "e": (86, 100, 116), "n": (218, 172, 154), "N": (178, 128, 114),
+    "J": (182, 136, 120), "l": VASILY_SKIN_LIGHT, "b": (92, 72, 60), "w": (234, 230, 226),
+    "E": (44, 40, 44), "e": (92, 112, 134), "n": (218, 172, 154), "N": (178, 128, 114),
     "m": (186, 124, 116), "M": (160, 100, 96),
 }
 
