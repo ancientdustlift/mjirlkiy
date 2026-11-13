@@ -1,9 +1,11 @@
 package com.kalabushkin;
 
+import com.kalabushkin.entity.AlexeyEntity;
 import com.kalabushkin.entity.BarsikEntity;
 import com.kalabushkin.entity.KalabushkinEntity;
 import com.kalabushkin.entity.KalabushkinSpiritEntity;
 import com.kalabushkin.entity.LittleKochEntity;
+import com.kalabushkin.entity.RitaEntity;
 import com.kalabushkin.entity.VasilyEntity;
 import com.kalabushkin.entity.VladLogutovEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -79,6 +81,25 @@ public final class ModEntities {
 					.maxTrackingRange(10)
 					.build());
 
+	public static final EntityType<AlexeyEntity> ALEXEY_SRPAVA = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("alexey_srpava"),
+			EntityType.Builder.create(AlexeyEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.55f, 1.7f)
+					.eyeHeight(1.5f)
+					.maxTrackingRange(10)
+					.build());
+
+	// No natural spawn of her own: she arrives together with Alexey.
+	public static final EntityType<RitaEntity> RITA = Registry.register(
+			Registries.ENTITY_TYPE,
+			Kalabushkin.id("rita"),
+			EntityType.Builder.create(RitaEntity::new, SpawnGroup.CREATURE)
+					.dimensions(0.5f, 1.6f)
+					.eyeHeight(1.42f)
+					.maxTrackingRange(10)
+					.build());
+
 	private ModEntities() {
 	}
 
@@ -90,6 +111,8 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(LITTLE_KOCH, LittleKochEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VASILY, VasilyEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(BARSIK, BarsikEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(ALEXEY_SRPAVA, AlexeyEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(RITA, RitaEntity.createAttributes());
 
 		SpawnRestriction.register(KALABUSHKIN, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, KalabushkinEntity::canSpawnHere);
@@ -119,5 +142,12 @@ public final class ModEntities {
 		BiomeModifications.addSpawn(
 				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.MEADOW, BiomeKeys.FOREST, BiomeKeys.TAIGA),
 				SpawnGroup.CREATURE, BARSIK, 3, 1, 1);
+
+		SpawnRestriction.register(ALEXEY_SRPAVA, SpawnLocationTypes.ON_GROUND,
+				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AlexeyEntity::canSpawnHere);
+		BiomeModifications.addSpawn(
+				BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.MEADOW, BiomeKeys.FLOWER_FOREST,
+						BiomeKeys.BIRCH_FOREST),
+				SpawnGroup.CREATURE, ALEXEY_SRPAVA, 3, 1, 1);
 	}
 }

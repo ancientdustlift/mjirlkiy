@@ -841,6 +841,225 @@ def barsik():
     return img
 
 
+class Hi:
+    """128x128 canvas for a 64x64 model texture: every model pixel is 2x2 texture pixels."""
+
+    SIDES = ("front", "back", "left", "right")
+
+    def __init__(self, seed):
+        self.img = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+        self.rng = random.Random(seed)
+
+    @staticmethod
+    def box(u, v, w, h, d):
+        return faces(2 * u, 2 * v, 2 * w, 2 * h, 2 * d)
+
+    def paint(self, rect, color_at, jitter=4):
+        """color_at is a colour or a function of (x, y) that may return None to leave a pixel clear."""
+        for y in range(rect[3]):
+            for x in range(rect[2]):
+                color = color_at(x, y) if callable(color_at) else color_at
+                if color is None:
+                    continue
+                j = self.rng.randint(-jitter, jitter)
+                self.img.putpixel((rect[0] + x, rect[1] + y), tuple(max(0, min(255, c + j)) for c in color) + (255,))
+
+    def paint_box(self, box, color_at, jitter=4, only=None):
+        for name, rect in box.items():
+            if only is None or name in only:
+                self.paint(rect, color_at, jitter)
+
+    def grid(self, rect, rows, palette):
+        assert len(rows) == rect[3] and all(len(row) == rect[2] for row in rows)
+        for y, row in enumerate(rows):
+            for x, key in enumerate(row):
+                self.img.putpixel((rect[0] + x, rect[1] + y), palette[key] + (255,))
+
+
+def strands(base, light):
+    """Hair with thin lighter streaks running down it."""
+    return lambda x, y: light if (3 * x + y // 3) % 7 == 0 else base
+
+
+ALEXEY_SKIN = (226, 180, 152)
+ALEXEY_SKIN_SHADE = (198, 150, 126)
+ALEXEY_HAIR = (50, 38, 32)
+ALEXEY_HAIR_LIGHT = (72, 56, 46)
+HOODIE = (88, 80, 80)
+HOODIE_DARK = (66, 60, 60)
+PUFFER = (40, 36, 38)
+PUFFER_SEAM = (22, 20, 22)
+BLACK_JEANS = (28, 28, 32)
+# Hand-drawn face: dark hair with a straight fringe down to the brows, dark eyes, a slight closed
+# smile. Shaded cheek and jaw edges make the face read slimmer than the square head it is drawn on.
+ALEXEY_FACE = [
+    "hhhhhhhhhhhhhhhh",
+    "hhHhhhhHhhhhHhhh",
+    "hhhhhhhhhhhhhhhh",
+    "hhhHhhhhhHhhhhhh",
+    "hhhhhhHhhhhhHhhh",
+    "hhsssssssssssshh",
+    "hjbbbbssssbbbbjh",
+    "hjswEesssseEwsjh",
+    "hjssssssssssssjh",
+    "JjsssssnnsssssjJ",
+    "JjssssNnnNssssjJ",
+    "JjssssssssssssjJ",
+    "JjjssmMMMMmssjjJ",
+    "JjjssssssssssjjJ",
+    "JJjjssssssssjjJJ",
+    "JJJjjssssssjjJJJ",
+]
+ALEXEY_FACE_PALETTE = {
+    "h": ALEXEY_HAIR, "H": ALEXEY_HAIR_LIGHT, "s": ALEXEY_SKIN, "j": ALEXEY_SKIN_SHADE, "J": (172, 126, 106),
+    "b": (44, 34, 30), "w": (236, 232, 226), "E": (30, 24, 22), "e": (84, 58, 42),
+    "n": (212, 164, 138), "N": (172, 124, 104), "m": (204, 140, 124), "M": (170, 104, 96),
+}
+
+
+def alexey():
+    c = Hi(71)
+    head = c.box(0, 0, 8, 8, 8)
+    c.paint_box(head, ALEXEY_SKIN)
+    c.paint(head["top"], strands(ALEXEY_HAIR, ALEXEY_HAIR_LIGHT), 6)
+    for side in ("right", "left"):
+        # Short at the sides, fading out above the ear.
+        c.paint(head[side], lambda x, y: ALEXEY_HAIR if y < 5 else (112, 86, 72) if y < 7 else
+                ALEXEY_SKIN_SHADE if 8 <= y <= 10 and 7 <= x <= 8 else ALEXEY_SKIN)
+    c.paint(head["back"], lambda x, y: ALEXEY_HAIR if y < 9 else (112, 86, 72) if y < 11 else ALEXEY_SKIN)
+    c.paint(head["bottom"], ALEXEY_SKIN_SHADE, 3)
+    c.grid(head["front"], ALEXEY_FACE, ALEXEY_FACE_PALETTE)
+    # Outer layer: the volume of the hair on top and the fringe standing off the forehead.
+    hair = c.box(32, 0, 8, 8, 8)
+    c.paint(hair["top"], strands(ALEXEY_HAIR, ALEXEY_HAIR_LIGHT), 6)
+    c.paint(hair["front"], lambda x, y: ALEXEY_HAIR if y < 4 else None, 6)
+    for side in ("right", "left"):
+        c.paint(hair[side], lambda x, y: ALEXEY_HAIR if y < 4 else None, 6)
+    c.paint(hair["back"], lambda x, y: ALEXEY_HAIR if y < 8 else None, 6)
+
+    # Hoodie with a white T-shirt showing at the neck; the vest goes over it.
+    body = c.box(16, 16, 8, 12, 4)
+    c.paint_box(body, HOODIE)
+    c.paint(body["front"], lambda x, y: (238, 238, 236) if y < 5 and abs(x - 7.5) <= 2.5 - y * 0.5 else HOODIE)
+    c.paint(body["bottom"], BLACK_JEANS, 3)
+
+    def quilt(x, y):
+        return PUFFER_SEAM if y % 4 == 3 else (54, 50, 52) if y % 4 == 0 else PUFFER
+
+    vest = c.box(24, 32, 8, 12, 4)
+    c.paint_box(vest, quilt, 3, only=("back", "left", "right"))
+    # Open at the collar, zipped below it.
+    c.paint(vest["front"], lambda x, y: (None if abs(x - 7.5) <= 2.5 - y * 0.5 else quilt(x, y)) if y < 5 else
+            (150, 150, 156) if x == 8 else PUFFER_SEAM if x == 7 else quilt(x, y), 3)
+    c.paint(vest["top"], lambda x, y: None if 5 <= x <= 10 else PUFFER, 3)
+    c.paint(vest["bottom"], PUFFER, 3)
+    hood = c.box(0, 32, 8, 3, 2)
+    c.paint_box(hood, HOODIE)
+    c.paint(hood["top"], HOODIE_DARK)
+    c.paint(hood["back"], lambda x, y: HOODIE_DARK if y == 5 else HOODIE)
+
+    for u, v in ((40, 16), (32, 48)):
+        arm = c.box(u, v, 4, 12, 4)
+        c.paint_box(arm, HOODIE)
+        for name in Hi.SIDES:
+            c.paint(arm[name], lambda x, y: HOODIE_DARK if y in (18, 19) else ALEXEY_SKIN if y >= 20 else HOODIE)
+        c.paint(arm["bottom"], ALEXEY_SKIN_SHADE, 3)
+    for u, v in ((0, 16), (16, 48)):
+        leg = c.box(u, v, 4, 12, 4)
+        c.paint_box(leg, BLACK_JEANS, 3)
+        for name in Hi.SIDES:
+            c.paint(leg[name], lambda x, y: (48, 48, 52) if y in (20, 21) else (84, 84, 88) if y >= 22 else BLACK_JEANS, 3)
+        c.paint(leg["bottom"], (84, 84, 88), 3)
+    return c.img
+
+
+RITA_SKIN = (234, 192, 168)
+RITA_SKIN_SHADE = (208, 162, 140)
+RITA_HAIR = (64, 46, 38)
+RITA_HAIR_LIGHT = (96, 70, 54)
+RITA_TEE = (150, 170, 178)
+RITA_TEE_SHADE = (124, 144, 154)
+# Hand-drawn face: long dark hair parted in the middle and framing the face, defined brows,
+# brown eyes, full lips.
+RITA_FACE = [
+    "hhhhhhhhhhhhhhhh",
+    "hhhhhhhHHhhhhhhh",
+    "hhhhhsssssshhhhh",
+    "hhhsssssssssshhh",
+    "hhsssssssssssshh",
+    "hhsbbbssssbbbshh",
+    "hhwEesssssseEwhh",
+    "hhsssssssssssshh",
+    "hhcssssnnsssschh",
+    "hhssssNnnNsssshh",
+    "hhsssssssssssshh",
+    "hhssssMMMMsssshh",
+    "hhsssssmmssssshh",
+    "hhhsssssssssshhh",
+    "hhhjssssssssjhhh",
+    "hhhhjjssssjjhhhh",
+]
+RITA_FACE_PALETTE = {
+    "h": RITA_HAIR, "H": (44, 32, 28), "s": RITA_SKIN, "j": RITA_SKIN_SHADE, "c": (236, 176, 160),
+    "b": (56, 40, 34), "w": (240, 236, 230), "E": (34, 26, 24), "e": (110, 70, 44),
+    "n": (220, 174, 152), "N": (184, 134, 114), "M": (186, 96, 98), "m": (212, 128, 126),
+}
+
+
+def rita():
+    c = Hi(83)
+    hair_color = strands(RITA_HAIR, RITA_HAIR_LIGHT)
+    head = c.box(0, 0, 8, 8, 8)
+    c.paint_box(head, hair_color, 5)
+    c.paint(head["top"], lambda x, y: (44, 32, 28) if x in (7, 8) and y > 6 else hair_color(x, y), 5)
+    c.paint(head["bottom"], RITA_SKIN_SHADE, 3)
+    c.grid(head["front"], RITA_FACE, RITA_FACE_PALETTE)
+    # Outer layer: hair all round, open at the front except for the locks either side of the face.
+    hair = c.box(32, 0, 8, 8, 8)
+    c.paint_box(hair, hair_color, 5, only=("top", "back", "left", "right"))
+    c.paint(hair["front"], lambda x, y: hair_color(x, y) if y < 2 and not 5 <= x <= 10 or x < 2 or x > 13 else None, 5)
+
+    # Cropped T-shirt, bare midriff, high-waisted black jeans with a button.
+    def outfit(x, y):
+        return RITA_TEE if y < 14 else RITA_SKIN if y < 18 else BLACK_JEANS
+
+    body = c.box(16, 16, 8, 12, 4)
+    c.paint_box(body, outfit, only=Hi.SIDES)
+    c.paint(body["front"], lambda x, y: (198, 150, 130) if (x, y) in ((7, 16), (8, 16)) else
+            (170, 172, 178) if (x, y) in ((7, 18), (8, 18)) else
+            (46, 46, 52) if y == 19 else outfit(x, y))
+    c.paint(body["top"], RITA_TEE)
+    c.paint(body["bottom"], BLACK_JEANS, 3)
+    # The loose T-shirt, standing off the body and open at the hem.
+    tee = c.box(36, 32, 8, 7, 4)
+    c.paint_box(tee, lambda x, y: RITA_TEE_SHADE if y == 13 or (x + 2 * y) % 11 == 0 else RITA_TEE, only=Hi.SIDES)
+    c.paint(tee["front"], lambda x, y: RITA_SKIN if y < 2 and 5 <= x <= 10 else
+            RITA_TEE_SHADE if y == 2 and 5 <= x <= 10 or y == 13 else RITA_TEE)
+    c.paint(tee["top"], lambda x, y: None if 5 <= x <= 10 else RITA_TEE)
+
+    for u, v in ((40, 16), (32, 48)):
+        arm = c.box(u, v, 3, 12, 4)
+        c.paint_box(arm, RITA_SKIN)
+        for name in Hi.SIDES:
+            # Sleeve to the elbow; pale nails at the fingertips.
+            c.paint(arm[name], lambda x, y: RITA_TEE if y < 9 else RITA_TEE_SHADE if y == 9 else
+                    (244, 236, 232) if y == 23 and x % 2 == 0 else RITA_SKIN)
+        c.paint(arm["top"], RITA_TEE)
+        c.paint(arm["bottom"], RITA_SKIN_SHADE, 3)
+    for u, v in ((0, 16), (16, 48)):
+        leg = c.box(u, v, 4, 12, 4)
+        c.paint_box(leg, BLACK_JEANS, 3)
+        for name in Hi.SIDES:
+            c.paint(leg[name], lambda x, y: (232, 232, 234) if y in (20, 21) else (196, 196, 200) if y >= 22 else
+                    (40, 40, 46) if x == 0 else BLACK_JEANS, 3)
+        c.paint(leg["bottom"], (196, 196, 200), 3)
+
+    c.paint_box(c.box(0, 32, 8, 9, 1), hair_color, 5)
+    for u in (20, 28):
+        c.paint_box(c.box(u, 32, 2, 7, 1), hair_color, 5)
+    return c.img
+
+
 def trip_icon():
     """18x18 status effect icon: a rainbow spiral."""
     img = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
@@ -869,6 +1088,8 @@ def main():
     fat().save(f"{OUT}/item/fat.png")
     vasily().save(f"{OUT}/entity/vasily.png")
     barsik().save(f"{OUT}/entity/barsik.png")
+    alexey().save(f"{OUT}/entity/alexey_srpava.png")
+    rita().save(f"{OUT}/entity/rita.png")
     os.makedirs(f"{OUT}/mob_effect", exist_ok=True)
     trip_icon().save(f"{OUT}/mob_effect/trip.png")
 

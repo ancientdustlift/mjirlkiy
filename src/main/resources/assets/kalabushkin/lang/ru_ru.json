@@ -30,5 +30,17 @@
 	"item.kalabushkin.nicotine.tooltip": "Ты об этом пожалеешь",
 	"effect.kalabushkin.trip": "Приход",
 	"entity.kalabushkin.barsik": "Барсик",
-	"item.kalabushkin.barsik_spawn_egg": "Яйцо призыва Барсика"
+	"item.kalabushkin.barsik_spawn_egg": "Яйцо призыва Барсика",
+	"entity.kalabushkin.alexey_srpava": "Алексей Српава",
+	"entity.kalabushkin.rita": "Рита",
+	"item.kalabushkin.alexey_srpava_spawn_egg": "Яйцо призыва Алексея Српавы",
+	"item.kalabushkin.rita_spawn_egg": "Яйцо призыва Риты",
+	"item.kalabushkin.diamond_phone": "Телефон в алмазном чехле",
+	"entity.kalabushkin.alexey_srpava.phrase.0": "Непонятная и красивая, как космос.",
+	"entity.kalabushkin.alexey_srpava.phrase.1": "Честно, даже этот алмаз не сияет так ярко, как ты.",
+	"entity.kalabushkin.alexey_srpava.phrase.2": "Красивое время, кстати, ты тоже неотразима.",
+	"entity.kalabushkin.alexey_srpava.phrase.3": "Пусть твои глаза и дальше сияют так же ярко.",
+	"entity.kalabushkin.alexey_srpava.phrase.4": "Потому что ты милая.",
+	"entity.kalabushkin.alexey_srpava.phrase.5": "А твои карие глаза меня пленили.",
+	"entity.kalabushkin.alexey_srpava.phrase.6": "Ничто не затмит блеск твоих глаз."
 }

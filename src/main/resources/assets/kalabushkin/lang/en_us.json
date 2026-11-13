@@ -30,5 +30,17 @@
 	"item.kalabushkin.nicotine.tooltip": "You will regret this",
 	"effect.kalabushkin.trip": "Trip",
 	"entity.kalabushkin.barsik": "Barsik",
-	"item.kalabushkin.barsik_spawn_egg": "Barsik Spawn Egg"
+	"item.kalabushkin.barsik_spawn_egg": "Barsik Spawn Egg",
+	"entity.kalabushkin.alexey_srpava": "Alexey Srpava",
+	"entity.kalabushkin.rita": "Rita",
+	"item.kalabushkin.alexey_srpava_spawn_egg": "Alexey Srpava Spawn Egg",
+	"item.kalabushkin.rita_spawn_egg": "Rita Spawn Egg",
+	"item.kalabushkin.diamond_phone": "Phone in a Diamond Case",
+	"entity.kalabushkin.alexey_srpava.phrase.0": "Incomprehensible and beautiful, like space.",
+	"entity.kalabushkin.alexey_srpava.phrase.1": "Honestly, even this diamond doesn't shine as brightly as you.",
+	"entity.kalabushkin.alexey_srpava.phrase.2": "It's a beautiful time, by the way, you're irresistible too.",
+	"entity.kalabushkin.alexey_srpava.phrase.3": "May your eyes continue to sparkle just as brightly.",
+	"entity.kalabushkin.alexey_srpava.phrase.4": "Because you're sweet.",
+	"entity.kalabushkin.alexey_srpava.phrase.5": "And your brown eyes captivated me.",
+	"entity.kalabushkin.alexey_srpava.phrase.6": "Nothing can outshine the sparkle of your eyes."
 }

@@ -365,6 +365,31 @@ def snus_model():
     write_static_model("snus", texture, elements, held_display([30, 45, 0], 1.5))
 
 
+def diamond_phone_model():
+    """A slim slab: black screen on one side, a faceted diamond case with a camera on the other."""
+    texture = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    diamond, facet, edge = (92, 220, 214), (176, 246, 240), (44, 164, 172)
+    icons = {(1, 2): (236, 84, 76), (3, 2): (90, 200, 110), (1, 4): (80, 150, 240), (3, 4): (244, 196, 70),
+             (1, 6): (190, 110, 230), (3, 6): (236, 236, 240)}
+    for y in range(10):
+        for x in range(5):
+            rim = x in (0, 4) or y in (0, 9)
+            texture.putpixel((x, y), (edge if rim else facet if (x + y) % 4 == 0 or (x - y) % 4 == 0 else diamond) + (255,))
+            texture.putpixel((5 + x, y), ((20, 20, 26) if rim else icons.get((x, y), (36, 42, 60))) + (255,))
+    for x, y in ((2, 4), (1, 5), (2, 5), (3, 5), (2, 6)):
+        texture.putpixel((x, y), (236, 255, 252, 255))  # gem motif on the case
+    for y in range(16):
+        for x in range(11, 16):
+            texture.putpixel((x, y), ((24, 24, 30) if y >= 11 else edge) + (255,))
+    side = [12, 0, 13, 10]
+    elements = [
+        box([5.5, 3, 7.5], [10.5, 13, 8.5], {"south": [0, 0, 5, 10], "north": [5, 0, 10, 10], "east": side,
+                                             "west": side, "up": [11, 0, 16, 1], "down": [11, 0, 16, 1]}),
+        box([6.2, 10.8, 8.5], [7.8, 12.4, 8.8], all_faces([12, 12, 13, 13])),  # camera bump
+    ]
+    write_static_model("diamond_phone", texture, elements, held_display([15, -25, 0], 1.3))
+
+
 def main():
     os.makedirs(f"{ASSETS}/textures/item", exist_ok=True)
     os.makedirs(f"{ASSETS}/models/item", exist_ok=True)
@@ -378,6 +403,7 @@ def main():
     dyadkovo_cigarette_model()
     vape_model()
     snus_model()
+    diamond_phone_model()
 
 
 if __name__ == "__main__":

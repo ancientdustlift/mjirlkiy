@@ -14,6 +14,7 @@ import net.minecraft.item.SpawnEggItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
+import net.minecraft.util.Rarity;
 
 public final class ModItems {
 	public static final Item KALABUSHKIN_SPAWN_EGG = register("kalabushkin_spawn_egg",
@@ -38,6 +39,13 @@ public final class ModItems {
 			new SpawnEggItem(ModEntities.VASILY, 0xE8BFA6, 0x9A9A9E, new Item.Settings()));
 	public static final Item BARSIK_SPAWN_EGG = register("barsik_spawn_egg",
 			new SpawnEggItem(ModEntities.BARSIK, 0x7C6E5E, 0x362F29, new Item.Settings()));
+	public static final Item ALEXEY_SRPAVA_SPAWN_EGG = register("alexey_srpava_spawn_egg",
+			new SpawnEggItem(ModEntities.ALEXEY_SRPAVA, 0x2A2628, 0x5CDCD6, new Item.Settings()));
+	public static final Item RITA_SPAWN_EGG = register("rita_spawn_egg",
+			new SpawnEggItem(ModEntities.RITA, 0x96AAB2, 0x3E2C24, new Item.Settings()));
+	// Dropped by Alexey. It does nothing yet.
+	public static final Item DIAMOND_PHONE = register("diamond_phone",
+			new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 	public static final Item SNUS = nicotineItem(NicotineItem.Kind.SNUS);
 	public static final Item VAPE = nicotineItem(NicotineItem.Kind.VAPE);
 	public static final Item CIGARETTE = nicotineItem(NicotineItem.Kind.CIGARETTE);
@@ -53,6 +61,8 @@ public final class ModItems {
 						entries.add(LITTLE_KOCH_SPAWN_EGG);
 						entries.add(VASILY_SPAWN_EGG);
 						entries.add(BARSIK_SPAWN_EGG);
+						entries.add(ALEXEY_SRPAVA_SPAWN_EGG);
+						entries.add(RITA_SPAWN_EGG);
 						entries.add(SHATUNI);
 						entries.add(CARPENTER_PLANE);
 						entries.add(WOODEN_MALLET);
@@ -61,6 +71,7 @@ public final class ModItems {
 						entries.add(VAPE);
 						entries.add(CIGARETTE);
 						entries.add(DYADKOVO_CIGARETTE);
+						entries.add(DIAMOND_PHONE);
 					})
 					.build());
 
@@ -92,6 +103,8 @@ public final class ModItems {
 					entries.add(LITTLE_KOCH_SPAWN_EGG);
 					entries.add(VASILY_SPAWN_EGG);
 					entries.add(BARSIK_SPAWN_EGG);
+					entries.add(ALEXEY_SRPAVA_SPAWN_EGG);
+					entries.add(RITA_SPAWN_EGG);
 				});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(entries -> entries.add(FAT));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {

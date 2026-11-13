@@ -1,10 +1,13 @@
 import java.io.PrintWriter;
 import java.util.Locale;
 
+import com.kalabushkin.client.AlexeyModel;
 import com.kalabushkin.client.BarsikAnimations;
 import com.kalabushkin.client.BarsikModel;
+import com.kalabushkin.client.CoupleAnimations;
 import com.kalabushkin.client.LittleKochAnimations;
 import com.kalabushkin.client.LittleKochModel;
+import com.kalabushkin.client.RitaModel;
 import com.kalabushkin.client.VasilyAnimations;
 import com.kalabushkin.client.VasilyModel;
 import com.kalabushkin.client.VladLogutovAnimations;
@@ -18,7 +21,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector3f;
 
 /**
- * Poses the Vlad Logutov, Little Koch, Vasily and Barsik models with the real Minecraft model classes and writes their quads to text
+ * Poses the mod's custom entity models with the real Minecraft model classes and writes their quads to text
  * files, so tools/preview/render_preview.py can draw it without starting the game.
  * Line format: pose name, then one "x y z u v nx ny nz" line per vertex, four per quad.
  */
@@ -40,6 +43,37 @@ public final class ModelDump {
 				koch.getPart().traverse().forEach(ModelPart::resetTransform);
 				animate(koch, LittleKochAnimations.WADDLE, (long) (time * 1000.0f), 1.0f);
 				dump("waddle" + time, koch);
+			}
+		}
+
+		AlexeyModel alexey = new AlexeyModel(AlexeyModel.getTexturedModelData().createModel());
+		try (PrintWriter writer = new PrintWriter(args[0] + "/alexey_srpava.txt")) {
+			out = writer;
+			alexey.getPart().traverse().forEach(ModelPart::resetTransform);
+			dump("stand", alexey);
+			alexey.getPart().traverse().forEach(ModelPart::resetTransform);
+			animate(alexey, CoupleAnimations.WALK, 250L, 1.0f);
+			dump("walk", alexey);
+			long[] complimentTimes = {900L, 2400L};
+			for (long time : complimentTimes) {
+				alexey.getPart().traverse().forEach(ModelPart::resetTransform);
+				animate(alexey, CoupleAnimations.COMPLIMENT, time, 1.0f);
+				dump("compliment" + time, alexey);
+			}
+		}
+		RitaModel rita = new RitaModel(RitaModel.getTexturedModelData().createModel());
+		try (PrintWriter writer = new PrintWriter(args[0] + "/rita.txt")) {
+			out = writer;
+			rita.getPart().traverse().forEach(ModelPart::resetTransform);
+			dump("stand", rita);
+			rita.getPart().traverse().forEach(ModelPart::resetTransform);
+			animate(rita, CoupleAnimations.WALK, 250L, 1.0f);
+			dump("walk", rita);
+			long[] listenTimes = {1100L, 2600L};
+			for (long time : listenTimes) {
+				rita.getPart().traverse().forEach(ModelPart::resetTransform);
+				animate(rita, CoupleAnimations.LISTEN, time, 1.0f);
+				dump("listen" + time, rita);
 			}
 		}
 
