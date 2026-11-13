@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Remains of Mint</title>
+<style>
+  :root {
+    --mint: #12b886;
+    --mint-deep: #04503f;
+    --ink: #00110c;
+    --paper: #e9f1ec;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 62%, #1a2b2a 0%, #0d1516 45%, #05080a 100%);
+    color: var(--paper);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+
+  #stage {
+    position: fixed; inset: 0;
+    perspective: 1500px;
+    perspective-origin: 50% 38%;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #stage.dragging { cursor: grabbing; }
+  #scene, .g { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+  #scene { left: 50%; top: 50%; --sheen: 50%; }
+  .face { position: absolute; left: 0; top: 0; overflow: hidden; }
+  .solid { backface-visibility: hidden; }
+  /* Diffuse shading: --sh is computed once per face from its normal. */
+  .face::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: var(--ink); opacity: var(--sh, 0);
+  }
+  /* View-dependent glint, driven by a single custom property on the scene. */
+  .glint::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background: linear-gradient(100deg, transparent 38%, rgba(255,255,255,var(--ga, .5)) 50%, transparent 62%) no-repeat;
+    background-size: 400% 100%;
+    background-position: var(--sheen) 0;
+  }
+
+  /* ---------- ground ---------- */
+  .ground {
+    background:
+      radial-gradient(circle at 46% 50%, rgba(214,222,196,.50) 0, rgba(120,150,138,.34) 12%, rgba(40,62,60,.22) 26%, transparent 46%);
+  }
+  .ground::after { display: none; }
+  .shadow { position: absolute; pointer-events: none; }
+  .shadow i { position: absolute; inset: 0; display: block; }
+  .shadow.cast { filter: blur(14px); opacity: .62; }
+  .shadow.cast i {
+    clip-path: polygon(50px 323px, 350px 323px, 530px 100px, 530px 50px, 230px 50px, 50px 277px);
+    background: linear-gradient(32deg, #020706 30%, rgba(2,7,6,.35) 85%);
+  }
+  .shadow.contact { filter: blur(6px); background: #010403; opacity: .85; border-radius: 6px; }
+  .shadow.small { filter: blur(7px); background: #010403; opacity: .6; border-radius: 8px; }
+
+  /* ---------- pack ---------- */
+  .card-out {
+    background:
+      radial-gradient(120% 90% at 22% 0%, rgba(160,255,214,.55), transparent 55%),
+      linear-gradient(158deg, #17c08d 0%, #0a9a72 38%, #06694f 70%, #03463a 100%);
+  }
+  .card-in {
+    background: linear-gradient(to bottom, #dfe7e2 0%, #b9c4be 28%, #56625d 62%, #171e1b 100%);
+  }
+  .pack-front {
+    --ga: .22;
+    -webkit-mask: radial-gradient(circle 30px at 50% -8px, transparent 97%, #000 100%);
+            mask: radial-gradient(circle 30px at 50% -8px, transparent 97%, #000 100%);
+    font-family: "Arial Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #fff;
+  }
+  .pack-front .ring {
+    position: absolute; left: 34px; top: 20px; width: 232px; height: 92px;
+    border: 3px solid rgba(255,255,255,.82); border-radius: 50%;
+    transform: rotate(-11deg);
+    box-shadow: 0 0 14px rgba(190,255,228,.35);
+  }
+  .pack-front .planet {
+    position: absolute; left: 243px; top: 22px; width: 15px; height: 15px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #b9ffe2 55%, #49d6a4);
+    box-shadow: 0 0 10px rgba(200,255,235,.8);
+  }
+  .pack-front .word {
+    position: absolute; left: 0; right: 0; top: 22px; text-align: center;
+    font-size: 76px; line-height: 1; font-weight: 900; font-style: italic; letter-spacing: -3px;
+    text-shadow: 0 0 0 #0a8f69, 3px 4px 0 #06694f, -3px -2px 0 #0b9d74, 0 8px 16px rgba(0,40,28,.5);
+  }
+  .pack-front .flav {
+    position: absolute; left: 0; right: 0; top: 108px; text-align: center;
+    font: 700 17px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 11px; text-indent: 11px;
+    color: #d8fff0;
+  }
+  .pack-front .sub {
+    position: absolute; bottom: 12px;
+    font: 600 9.5px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 1.6px; text-transform: uppercase;
+    color: rgba(230,255,244,.82);
+  }
+  .pack-front .sub.l { left: 16px; }
+  .pack-front .sub.r { right: 16px; }
+  .pack-front .rule { position: absolute; left: 16px; right: 16px; bottom: 28px; height: 1px; background: rgba(230,255,244,.35); }
+
+  .pack-back { font: 600 8px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; color: rgba(230,255,244,.8); }
+  .pack-back .lines {
+    position: absolute; left: 22px; top: 62px; width: 150px; height: 120px;
+    background: repeating-linear-gradient(to bottom, rgba(230,255,244,.55) 0 2px, transparent 2px 8px);
+    -webkit-mask: linear-gradient(90deg, #000 70%, transparent);
+            mask: linear-gradient(90deg, #000 70%, transparent);
+  }
+  .pack-back .title { position: absolute; left: 22px; top: 40px; letter-spacing: 2px; font-size: 9px; }
+  .pack-back .barcode {
+    position: absolute; right: 24px; bottom: 26px; width: 78px; height: 46px; padding: 5px; background: #f4faf7;
+  }
+  .pack-back .barcode i {
+    display: block; height: 100%;
+    background: repeating-linear-gradient(90deg, #06231b 0 2px, transparent 2px 3px, #06231b 3px 4px, transparent 4px 7px, #06231b 7px 10px, transparent 10px 12px);
+  }
+  .pack-side { background: linear-gradient(to bottom, #0b9a72, #04503f); }
+  .pack-floor { background: #0a100e; }
+
+  .flap-in {
+    background: linear-gradient(to bottom, #f1f6f3, #cfd9d4);
+    display: grid; place-items: center;
+  }
+  .flap-in span {
+    font: italic 400 15px/1 "Iowan Old Style", Georgia, serif; letter-spacing: 2px; color: rgba(6,105,79,.55);
+  }
+  .tuck { border-radius: 46px 46px 0 0; }
+  .crease { box-shadow: inset 0 -5px 6px -4px rgba(0,30,22,.45); }
+
+  /* ---------- sticks ---------- */
+  .stick { transform: var(--rest, none); transition: transform 1.9s cubic-bezier(.3,.1,.2,1); }
+  .stick .face { transition: opacity 1.2s .45s; }
+  .stick.live .face { cursor: pointer; }
+  .stick.taken { transform: translateY(-330px) rotateY(55deg) rotateZ(9deg); pointer-events: none; }
+  .stick.taken .face { opacity: 0; }
+  .stick.instant, .stick.instant .face { transition: none; }
+
+  .foil {
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 3px),
+      linear-gradient(100deg, #f5f8f9 0%, #a9b4b9 26%, #eef2f3 47%, #8c979d 72%, #dde3e6 100%);
+  }
+  .sleeve {
+    --ga: .6;
+    background:
+      linear-gradient(to bottom, transparent 0 30px, #0fae7c 30px 35px, transparent 35px),
+      linear-gradient(to bottom, transparent 0 30px, #f7fbf9 30px, #dfeee7 100%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.2) 0 1px, transparent 1px 3px),
+      linear-gradient(100deg, #f5f8f9 0%, #a9b4b9 26%, #eef2f3 47%, #8c979d 72%, #dde3e6 100%);
+  }
+  .sleeve span {
+    position: absolute; left: 50%; top: 56%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font: italic 900 17px/1 "Arial Black", "Helvetica Neue", Arial, sans-serif; letter-spacing: -.5px;
+    color: #0a9a72; white-space: nowrap;
+  }
+  .stick-side { background: linear-gradient(to bottom, #c9d1d4 0 30px, #e6f0eb 30px); }
+  .stick-end {
+    background:
+      linear-gradient(90deg, transparent 48%, rgba(60,72,78,.55) 50%, transparent 52%),
+      linear-gradient(100deg, #f5f8f9, #a9b4b9 45%, #eef2f3);
+  }
+
+  /* ---------- the departed ---------- */
+  .ghost.on { animation: rise 12s linear infinite; animation-delay: var(--d, 0s); }
+  .gp {
+    opacity: 0; border-radius: 4px; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(222,255,241,.95), rgba(130,255,200,.12));
+    box-shadow: 0 0 22px rgba(150,255,212,.65);
+    filter: blur(1.2px);
+  }
+  .gp::after { display: none; }
+  .ghost.on .gp { animation: fade 12s linear infinite; animation-delay: var(--d, 0s); }
+  @keyframes rise { from { transform: translateY(10px); } to { transform: translateY(-250px); } }
+  @keyframes fade { 0% { opacity: 0; } 14% { opacity: .26; } 55% { opacity: .1; } 100% { opacity: 0; } }
+
+  /* ---------- atmosphere & words ---------- */
+  #beam, #vignette, #dust { position: fixed; inset: 0; pointer-events: none; }
+  #beam {
+    background:
+      linear-gradient(118deg, rgba(255,243,210,.13) 0%, rgba(255,243,210,.05) 28%, transparent 52%);
+    mix-blend-mode: screen;
+  }
+  #vignette { background: radial-gradient(90% 80% at 50% 50%, transparent 55%, rgba(0,0,0,.7) 100%); }
+
+  header, footer { position: fixed; left: 0; right: 0; text-align: center; pointer-events: none; }
+  header { top: clamp(18px, 4.5vh, 44px); }
+  header .kicker {
+    font: 600 11px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 5px; text-indent: 5px;
+    text-transform: uppercase; color: rgba(160,235,205,.6);
+  }
+  footer { bottom: clamp(16px, 4vh, 40px); padding: 0 20px; }
+  #line {
+    margin: 0 auto 14px; max-width: 34em; min-height: 1.3em;
+    font-size: clamp(17px, 2.3vw, 25px); font-style: italic; line-height: 1.3;
+    color: #eef6f1; text-shadow: 0 2px 18px rgba(0,0,0,.8);
+    transition: opacity .6s;
+  }
+  #tally { display: inline-flex; gap: 5px; vertical-align: middle; }
+  #tally i {
+    width: 7px; height: 20px; border-radius: 2px; display: block;
+    border: 1px solid rgba(160,235,205,.45); transition: background .8s, box-shadow .8s;
+  }
+  #tally i.here { background: #bff5dd; border-color: #bff5dd; box-shadow: 0 0 8px rgba(150,255,212,.5); }
+  .hint {
+    margin-top: 12px;
+    font: 500 11px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(200,225,215,.42);
+  }
+  #again {
+    pointer-events: auto; cursor: pointer; background: none; border: 0; padding: 0 0 1px; margin-left: 10px;
+    font: inherit; letter-spacing: inherit; text-transform: inherit; color: rgba(160,235,205,.8);
+    border-bottom: 1px solid rgba(160,235,205,.4);
+  }
+  #again[hidden] { display: none; }
+  #again:focus-visible { outline: 2px solid #bff5dd; outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ghost.on, .ghost.on .gp { animation: none; }
+    .ghost.on .gp { opacity: .12; }
+    .stick, .stick .face { transition-duration: .01s; transition-delay: 0s; }
+  }
+</style>
+</head>
+<body>
+<div id="stage" role="img" aria-label="An open pack of mint Orbit gum, drawn in 3D, with several pieces missing">
+  <div id="scene"></div>
+</div>
+<div id="beam"></div>
+<canvas id="dust"></canvas>
+<div id="vignette"></div>
+
+<header><div class="kicker">A tragedy in mint</div></header>
+<footer>
+  <p id="line" aria-live="polite"></p>
+  <div id="tally" aria-hidden="true"></div>
+  <div class="hint">drag to orbit · click a piece to take it<button id="again" hidden>begin again</button></div>
+</footer>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const scene = document.getElementById('scene');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Scene units are px; ground is y = 0 and up is negative y. The pack faces +z.
+  const W = 300, D = 46, HB = 250, HF = 170;
+  const SW = 36, SH = 212, SD = 17;
+
+  function group(parent, tf, cls) {
+    const g = document.createElement('div');
+    g.className = 'g' + (cls ? ' ' + cls : '');
+    if (tf) g.style.transform = tf;
+    parent.appendChild(g);
+    return g;
+  }
+  function plane(parent, w, h, cls, tf, html) {
+    const f = document.createElement('div');
+    f.className = 'face ' + cls;
+    f.style.cssText = `width:${w}px;height:${h}px;margin:${-h / 2}px 0 0 ${-w / 2}px;transform:${tf}`;
+    if (html) f.innerHTML = html;
+    parent.appendChild(f);
+    return f;
+  }
+
+  // ---------- ground ----------
+  const G = 2600, C = G / 2;
+  const ground = plane(scene, G, G, 'ground', 'rotateX(90deg)');
+  function shadow(cls, x, z, w, h, rot) {
+    const s = document.createElement('div');
+    s.className = 'shadow ' + cls;
+    s.style.cssText = `left:${C + x - w / 2}px;top:${C + z - h / 2}px;width:${w}px;height:${h}px;transform:rotate(${rot || 0}deg)`;
+    s.appendChild(document.createElement('i'));
+    ground.appendChild(s);
+  }
+  shadow('cast', 100, -100, 600, 400);
+  shadow('contact', 4, -2, W + 12, D + 12);
+  shadow('small', 318, 96, 46, 220, 25);
+  shadow('small', -262, 112, 44, 120, -40);
+  shadow('small', 164, 202, 40, 96, 70);
+
+  // ---------- pack ----------
+  const pack = group(scene);
+  plane(pack, W, D, 'pack-floor', 'translate3d(0,-1px,0) rotateX(90deg)');
+  plane(pack, W, HB, 'card-out pack-back solid', `translate3d(0,${-HB / 2}px,${-D / 2}px) rotateY(180deg)`,
+    '<div class="title">SUGARFREE GUM · MINT</div><div class="lines"></div><div class="barcode"><i></i></div>');
+  plane(pack, W, HB, 'card-in solid', `translate3d(0,${-HB / 2}px,${-D / 2 + 1}px)`);
+  plane(pack, D, HB, 'pack-side', `translate3d(${W / 2}px,${-HB / 2}px,0) rotateY(90deg)`)
+    .style.clipPath = `polygon(0 ${HB - HF}px, 100% 0, 100% 100%, 0 100%)`;
+  plane(pack, D, HB, 'pack-side', `translate3d(${-W / 2}px,${-HB / 2}px,0) rotateY(-90deg)`)
+    .style.clipPath = `polygon(0 0, 100% ${HB - HF}px, 100% 100%, 0 100%)`;
+  plane(pack, W, HF, 'card-in solid', `translate3d(0,${-HF / 2}px,${D / 2 - 1}px) rotateY(180deg)`);
+
+  // Flap: hinged at the top of the back wall, left open, creased by habit.
+  const flap = group(pack, `translate3d(0,${-HB}px,${-D / 2}px) rotateX(16deg)`);
+  plane(flap, W, D, 'flap-in crease solid', `translate3d(0,${-D / 2}px,0.5px)`);
+  plane(flap, W, D, 'card-out solid', `translate3d(0,${-D / 2}px,-0.5px) rotateY(180deg)`);
+  const tuck = group(flap, `translate3d(0,${-D}px,0) rotateX(-34deg)`);
+  plane(tuck, W - 40, 92, 'flap-in tuck solid', 'translate3d(0,-46px,0.5px)', '<span>made for sharing</span>');
+  plane(tuck, W - 40, 92, 'card-out tuck solid', 'translate3d(0,-46px,-0.5px) rotateY(180deg)');
+
+  // ---------- sticks ----------
+  function buildStick(parent) {
+    const s = group(parent, '', 'stick');
+    const label = '<span>Orbit</span>';
+    plane(s, SW, SH, 'sleeve glint solid', `translate3d(0,${-SH / 2}px,${SD / 2}px)`, label);
+    plane(s, SW, SH, 'sleeve glint solid', `translate3d(0,${-SH / 2}px,${-SD / 2}px) rotateY(180deg)`, label);
+    plane(s, SD, SH, 'stick-side solid', `translate3d(${-SW / 2}px,${-SH / 2}px,0) rotateY(-90deg)`);
+    plane(s, SD, SH, 'stick-side solid', `translate3d(${SW / 2}px,${-SH / 2}px,0) rotateY(90deg)`);
+    plane(s, SW, SD, 'stick-end solid', `translate3d(0,${-SH}px,0) rotateX(90deg)`);
+    plane(s, SW, SD, 'stick-end solid', 'translate3d(0,0,0) rotateX(-90deg)');
+    return s;
+  }
+
+  // 1 = still here at curtain-up. Back row first, then front row.
+  const LAYOUT = [
+    [1, 0, 1, 1, 1, 0, 1],
+    [1, 1, 0, 1, 0, 0, 1],
+  ];
+  const pitch = (W - 12) / 7;
+  const slots = [];
+  LAYOUT.forEach((row, r) => row.forEach((here, i) => {
+    const x = -W / 2 + 6 + pitch * (i + .5);
+    const g = group(pack, `translate3d(${x}px,${r === 0 ? -28 : 0}px,${r === 0 ? -10.5 : 10.5}px)`);
+    const stick = buildStick(g);
+    const ghost = group(g, '', 'ghost');
+    ghost.style.setProperty('--d', (-Math.random() * 12).toFixed(2) + 's');
+    plane(ghost, SW, SH, 'gp', `translate3d(0,${-SH / 2}px,0)`);
+    plane(ghost, SW, SH, 'gp', `translate3d(0,${-SH / 2}px,0) rotateY(90deg)`);
+    slots.push({ stick, ghost, initial: !!here, here: !!here });
+    stick.slot = slots[slots.length - 1];
+  }));
+  // One piece half-drawn and then, apparently, reconsidered.
+  slots[7 + 3].stick.style.setProperty('--rest', 'translateY(-34px) rotateZ(4deg)');
+
+  plane(pack, W, HF, 'card-out pack-front glint solid', `translate3d(0,${-HF / 2}px,${D / 2}px)`,
+    '<div class="ring"></div><div class="planet"></div><div class="word">Orbit</div><div class="flav">MINT</div>' +
+    '<div class="rule"></div><div class="sub l">Sugarfree gum</div><div class="sub r">14 pieces</div>');
+
+  // ---------- what fell ----------
+  const fallen = group(scene, `translate3d(270px,${-SD / 2}px,190px) rotateY(-25deg) rotateX(90deg)`);
+  buildStick(fallen);
+
+  function wrapper(x, z, yaw, bends) {
+    let g = group(scene, `translate3d(${x}px,-1px,${z}px) rotateY(${yaw}deg) rotateX(90deg)`);
+    plane(g, 34, 60, 'foil glint', 'translate3d(0,-30px,0)');
+    bends.forEach(a => {
+      g = group(g, `translate3d(0,-60px,0) rotateX(${a}deg)`);
+      plane(g, 34, 60, 'foil glint', 'translate3d(0,-30px,0)');
+    });
+  }
+  wrapper(-232, 150, 40, [-32, -48]);
+  wrapper(120, 215, -70, [-68, -74]);
+
+  // ---------- static diffuse light ----------
+  const L = (() => { const v = [-0.45, -0.8, 0.55], n = Math.hypot(...v); return v.map(c => c / n); })();
+  scene.querySelectorAll('.face:not(.ground):not(.gp)').forEach(f => {
+    const chain = [];
+    for (let e = f; e !== scene; e = e.parentElement) chain.unshift(e);
+    const m = new DOMMatrix();
+    chain.forEach(e => {
+      const t = getComputedStyle(e).transform;
+      if (t && t !== 'none') m.multiplySelf(new DOMMatrix(t));
+    });
+    const n = m.transformPoint(new DOMPoint(0, 0, 1, 0));
+    const d = (n.x * L[0] + n.y * L[1] + n.z * L[2]) / (Math.hypot(n.x, n.y, n.z) || 1);
+    const lit = .46 + .54 * Math.max(0, d);
+    f.style.setProperty('--sh', ((1 - lit) * .82).toFixed(3));
+  });
+
+  // ---------- the story ----------
+  const lineEl = document.getElementById('line');
+  const tally = document.getElementById('tally');
+  const again = document.getElementById('again');
+  slots.forEach(() => tally.appendChild(document.createElement('i')));
+  const LINES = [
+    'None. Only the feeling of mint remains.',
+    'One. Saved for later; later always comes.',
+    'Two. Neither will speak of it.',
+    'Three. The flap no longer closes with conviction.',
+    'Four. Shared, mostly with strangers.',
+    'Five. The foil remembers.',
+    'Six. They used to stand shoulder to shoulder.',
+    'Seven. Half a pack, half a promise.',
+    'Eight. Someone had a meeting.',
+    'Fourteen left the factory together. Nine remain.',
+  ];
+  function render() {
+    const n = slots.filter(s => s.here).length;
+    lineEl.textContent = LINES[n];
+    [...tally.children].forEach((d, i) => d.classList.toggle('here', slots[i].here));
+    again.hidden = slots.every(s => s.here === s.initial);
+  }
+  function setup() {
+    slots.forEach(s => {
+      s.here = s.initial;
+      s.stick.classList.add('instant');
+      s.stick.classList.toggle('taken', !s.here);
+      s.stick.classList.toggle('live', s.here);
+      s.ghost.classList.toggle('on', !s.here);
+    });
+    void scene.offsetWidth;
+    slots.forEach(s => s.stick.classList.remove('instant'));
+    render();
+  }
+  function take(slot) {
+    if (!slot.here) return;
+    slot.here = false;
+    slot.stick.classList.remove('live');
+    slot.stick.classList.add('taken');
+    setTimeout(() => { if (!slot.here) slot.ghost.classList.add('on'); }, 1900);
+    render();
+  }
+  again.addEventListener('click', setup);
+  setup();
+
+  // ---------- camera ----------
+  let rx = -19, ry = -27, zoom = 1, fit = 1, idleSince = -1e9;
+  let drag = null;
+  function resize() {
+    fit = Math.max(.34, Math.min(innerWidth / 980, innerHeight / 860, 1.5));
+  }
+  addEventListener('resize', resize);
+  resize();
+
+  stage.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, y: e.clientY, moved: 0, target: e.target };
+    stage.setPointerCapture(e.pointerId);
+    stage.classList.add('dragging');
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.x = e.clientX; drag.y = e.clientY;
+    drag.moved += Math.abs(dx) + Math.abs(dy);
+    ry += dx * .4;
+    rx = Math.max(-78, Math.min(-4, rx - dy * .3));
+  });
+  function release() {
+    if (!drag) return;
+    if (drag.moved < 6) {
+      const s = drag.target.closest && drag.target.closest('.stick');
+      if (s && s.slot) take(s.slot);
+    }
+    drag = null;
+    idleSince = performance.now();
+    stage.classList.remove('dragging');
+  }
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', () => { drag = null; stage.classList.remove('dragging'); });
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoom = Math.max(.6, Math.min(1.9, zoom * Math.exp(-e.deltaY * .0012)));
+  }, { passive: false });
+
+  // ---------- dust in the light ----------
+  const cv = document.getElementById('dust'), ctx = cv.getContext('2d');
+  let cw = 0, ch = 0;
+  function sizeCanvas() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    cw = innerWidth; ch = innerHeight;
+    cv.width = cw * dpr; cv.height = ch * dpr;
+    cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  addEventListener('resize', sizeCanvas);
+  sizeCanvas();
+  const motes = Array.from({ length: 70 }, () => ({
+    x: Math.random(), y: Math.random(), r: .5 + Math.random() * 1.4,
+    vx: (Math.random() - .5) * .006, vy: .002 + Math.random() * .006, p: Math.random() * 6.28,
+  }));
+  function drawDust(t, dt) {
+    ctx.clearRect(0, 0, cw, ch);
+    for (const m of motes) {
+      m.x += (m.vx + Math.sin(t * .3 + m.p) * .003) * dt;
+      m.y += m.vy * dt;
+      if (m.y > 1.02) { m.y = -.02; m.x = Math.random(); }
+      if (m.x < -.02) m.x = 1.02; else if (m.x > 1.02) m.x = -.02;
+      // Brightest where the beam falls: upper left, fading toward lower right.
+      const inBeam = Math.max(0, 1 - (m.x * .8 + m.y * .75));
+      const a = (.08 + .5 * inBeam) * (.6 + .4 * Math.sin(t * .9 + m.p));
+      ctx.fillStyle = `rgba(255,246,222,${Math.max(0, a).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(m.x * cw, m.y * ch, m.r, 0, 6.2832);
+      ctx.fill();
+    }
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000);
+    last = now;
+    // Left alone, the camera resumes a slow orbit.
+    if (!reduceMotion && !drag && now - idleSince > 2200) ry += dt * 5;
+    const s = fit * zoom;
+    scene.style.transform = `translateY(${95 * s}px) scale3d(${s},${s},${s}) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    scene.style.setProperty('--sheen', (50 + 50 * Math.sin((ry + 20) * Math.PI / 70)).toFixed(1) + '%');
+    if (!reduceMotion) drawDust(now / 1000, dt);
+    requestAnimationFrame(frame);
+  }
+  if (reduceMotion) drawDust(0, 0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
