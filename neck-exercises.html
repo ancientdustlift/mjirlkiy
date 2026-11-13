@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neck posture routine: animated exercises</title>
+<style>
+/*STANDALONE*/
+:root{
+  --bg:#0e131c; --stage:#182030; --fg:#e8ecf4; --muted:#a2adc2; --prop:#56617a; --line:#2b3549;
+  --near:#e6ebf5; --far:#8693ad; --accent:#ff8a5c;
+  --t-s:13px; --t-r:15px; --t-l:21px; --rad:14px;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f9; --stage:#ffffff; --fg:#1b2233; --muted:#5c6880; --prop:#aab4c6; --line:#dde3ec;
+    --near:#27324a; --far:#8d99b0; --accent:#e85d2f;
+  }
+}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+body{padding:28px 16px 48px}
+.np{max-width:980px;margin:0 auto}
+.np-head h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}
+.np-head p{margin:0 0 20px;color:var(--muted);font-size:var(--t-r)}
+.np button,.np select{font:inherit;font-size:var(--t-s);color:var(--fg);background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+.np button:hover{border-color:var(--accent)}
+.np button.hl-primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;min-width:84px}
+/*END-STANDALONE*/
+/*EMBED
+:root{
+  --stage:var(--card-panel); --fg:var(--foreground); --muted:var(--muted-foreground); --prop:var(--faint-foreground); --line:var(--panel-hairline);
+  --near:var(--foreground); --far:var(--muted-foreground); --accent:var(--chart-1);
+  --t-s:var(--type-small); --t-r:var(--type-regular); --t-l:var(--type-large); --rad:var(--radius-xl);
+}
+END-EMBED*/
+.np *{box-sizing:border-box}
+.np-main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+.np-stage{background:var(--stage);border:1px solid var(--line);border-radius:var(--rad);overflow:hidden}
+.np-stage svg{display:block;width:100%;height:auto}
+.np-phase{display:flex;justify-content:space-between;gap:12px;padding:10px 14px 8px;font-size:var(--t-r);font-weight:600;min-height:42px}
+.np-phase span:last-child{color:var(--muted);font-weight:400;font-size:var(--t-s);white-space:nowrap;align-self:center}
+.np-bar{height:4px;background:var(--line)}
+.np-bar i{display:block;height:100%;width:0;background:var(--muted)}
+.np-bar i.hold{background:var(--accent)}
+.np-step{font-size:var(--t-s);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.np-name{font-size:var(--t-l);font-weight:650;margin:2px 0 4px;letter-spacing:-.01em}
+.np-why{color:var(--muted);font-size:var(--t-s);margin:0 0 12px}
+.np-dose{display:inline-block;font-size:var(--t-s);font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 12px;margin-bottom:12px}
+.np-info ul{margin:0 0 12px;padding-left:18px;font-size:var(--t-r)}
+.np-info li{margin-bottom:6px}
+.np-tip{font-size:var(--t-s);color:var(--muted);border-left:2px solid var(--accent);padding-left:10px;margin:0}
+.np-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}
+.np-controls label{display:flex;align-items:center;gap:6px;font-size:var(--t-s);color:var(--muted)}
+.np-controls .sp{flex:1}
+.np-thumbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.np-thumb{background:var(--stage);border:1px solid var(--line);border-radius:var(--rad);cursor:pointer;overflow:hidden;outline:none}
+.np-thumb svg{display:block;width:100%;height:auto}
+.np-thumb div{font-size:var(--t-s);padding:6px 10px 8px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-thumb:hover,.np-thumb:focus-visible{border-color:var(--muted)}
+.np-thumb[aria-current="true"]{border-color:var(--accent)}
+.np-thumb[aria-current="true"] div{color:var(--fg);font-weight:600}
+.np-note{font-size:var(--t-s);color:var(--muted);margin:16px 0 0}
+@media (max-width:600px){
+  .np-main{grid-template-columns:minmax(0,1fr)}
+  .np-thumbs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* figure */
+.fig polyline,.fig path,.fig line{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fig polygon{stroke-linejoin:round}
+.fig .ol{stroke:var(--stage)}
+.fig polygon.ol{fill:var(--stage)}
+.fig .near{stroke:var(--near)}
+.fig .far{stroke:var(--far)}
+.fig polygon.near,.fig ellipse.near{fill:var(--near)}
+.fig ellipse.near{stroke:var(--stage);stroke-width:1.8}
+.fig path.head{fill:var(--near);stroke:var(--stage);stroke-width:1.8;stroke-linejoin:round}
+.fig .eye{fill:var(--stage)}
+.fig .shadow polyline{stroke:var(--fg);opacity:.2}
+.fig .arrow line,.fig .arrow polyline{stroke:var(--accent);stroke-width:2.4}
+.props .floor{stroke:var(--prop);stroke-width:1.5;stroke-linecap:round}
+.props .mat{fill:var(--prop);opacity:.32}
+.props .wall{fill:var(--prop);opacity:.14}
+.props .obj{fill:var(--stage);stroke:var(--prop);stroke-width:2}
+.props .solid{fill:var(--prop);opacity:.7}
+.props .lbl{fill:var(--muted);font-size:8.5px;letter-spacing:.04em}
+.np-thumb .lbl{display:none}
+.glow-stop{stop-color:var(--accent)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="npGlow">
+      <stop offset="0" class="glow-stop" stop-opacity=".75"/>
+      <stop offset=".55" class="glow-stop" stop-opacity=".3"/>
+      <stop offset="1" class="glow-stop" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
+<div class="np">
+  <!--STANDALONE-->
+  <header class="np-head">
+    <h1>Neck posture routine</h1>
+    <p>Eight animated exercises, about 15 minutes, 5–6 days a week. Pick one below or let it auto-advance.</p>
+  </header>
+  <!--END-STANDALONE-->
+  <div class="np-main">
+    <div class="np-stage">
+      <svg id="stage" viewBox="0 0 400 250" role="img" aria-label="Exercise animation">
+        <g class="props" id="props"></g><g class="fig" id="fig"></g>
+      </svg>
+      <div class="np-phase"><span id="phase"></span><span id="kind"></span></div>
+      <div class="np-bar"><i id="bar"></i></div>
+    </div>
+    <div class="np-info">
+      <div class="np-step" id="step"></div>
+      <div class="np-name" id="name"></div>
+      <p class="np-why" id="why"></p>
+      <div class="np-dose" id="dose"></div>
+      <ul id="cues"></ul>
+      <p class="np-tip" id="tip"></p>
+    </div>
+  </div>
+  <div class="np-controls">
+    <button id="prev" aria-label="Previous exercise">‹ Prev</button>
+    <button id="play" class="hl-primary">Pause</button>
+    <button id="next" aria-label="Next exercise">Next ›</button>
+    <span class="sp"></span>
+    <label>Speed
+      <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select>
+    </label>
+    <label><input type="checkbox" role="switch" id="auto"> Auto-advance</label>
+  </div>
+  <div class="np-thumbs" id="thumbs"></div>
+  <p class="np-note">Holds are shortened in the animation; follow the times shown for each exercise. Stop and see a doctor if you get numbness, tingling or weakness in an arm or leg, dizziness with neck movement, or bladder or bowel changes.</p>
+</div>
+<script>
+(() => {
+// Segment lengths in SVG units; the figure is ~170 units tall.
+const L = {lum:26, thor:26, neck:12, head:8.8, ua:28, fa:25, th:42, sh:40, ft:13};
+const rad = d => d*Math.PI/180;
+const dir = a => [Math.cos(rad(a)), Math.sin(rad(a))];
+const add = (p,v,s=1) => [p[0]+v[0]*s, p[1]+v[1]*s];
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+
+function lerp(a,b,t){
+  if(typeof a==='number') return a+(b-a)*t;
+  if(Array.isArray(a)) return a.map((v,i)=>lerp(v,b[i]??v,t));
+  if(a && typeof a==='object'){const o={};for(const k in a)o[k]=(k in b)?lerp(a[k],b[k],t):a[k];return o;}
+  return t<.5?a:b;
+}
+
+// Two-bone IK: returns the middle joint and the (clamped) end point.
+function ik(o,t,l1,l2,bend){
+  const dx=t[0]-o[0], dy=t[1]-o[1];
+  const d=Math.max(Math.abs(l1-l2)+.01, Math.min(l1+l2-.01, Math.hypot(dx,dy)));
+  const base=Math.atan2(dy,dx), A=Math.acos((l1*l1+d*d-l2*l2)/(2*l1*d)), a1=base+bend*A;
+  return [[o[0]+l1*Math.cos(a1),o[1]+l1*Math.sin(a1)],[o[0]+d*Math.cos(base),o[1]+d*Math.sin(base)]];
+}
+
+// Angles are absolute, in degrees: 0 = right, 90 = down. "R" is screen-right when the figure stands facing us.
+function solve(p){
+  const dl=dir(p.lum), dt=dir(p.thor);
+  const mid=add(p.hip,dl,p.lumLen??L.lum), sh=add(mid,dt,p.thorLen??L.thor);
+  const pl=[-dl[1],dl[0]], pt=[-dt[1],dt[0]], mw=(p.sw+p.hw)/2;
+  const J={hip:p.hip, mid, sh,
+    hipR:add(p.hip,pl,p.hw), hipL:add(p.hip,pl,-p.hw),
+    midR:add(mid,pl,mw), midL:add(mid,pl,-mw),
+    shR:add(sh,pt,p.sw), shL:add(sh,pt,-p.sw)};
+  J.hc=add(sh,dir(p.neck),L.neck+L.head);
+  const arm=(o,s)=>{
+    if(Array.isArray(s)){const e=add(o,dir(s[0]),L.ua*(s[2]??1));return [o,e,add(e,dir(s[1]),L.fa*(s[3]??1))];}
+    const t=s.to==='head'?add(J.hc,dir(p.head),-5):s.to;
+    const [j,e]=ik(o,t,L.ua,L.fa,s.bend);return [o,j,e];
+  };
+  const leg=(o,s)=>{
+    let k,a,f;
+    if(Array.isArray(s)){k=add(o,dir(s[0]),L.th);a=add(k,dir(s[1]),L.sh);f=s[2];}
+    else{[k,a]=ik(o,s.to,L.th,L.sh,s.bend);f=s.ft;}
+    return [o,k,a,add(a,dir(f),p.ftLen??L.ft)];
+  };
+  J.aR=arm(J.shR,p.aR);J.aL=arm(J.shL,p.aL);J.lR=leg(J.hipR,p.lR);J.lL=leg(J.hipL,p.lL);
+  return J;
+}
+
+const f=n=>n.toFixed(1);
+const pts=a=>a.map(q=>f(q[0])+','+f(q[1])).join(' ');
+const stroke=(a,w,c)=>`<polyline class="${c}" points="${pts(a)}" stroke-width="${w}"/>`;
+const limb=(a,w,c)=>stroke(a,w+3.6,'ol')+stroke(a,w,c);
+
+function draw(ex,p,t){
+  const J=solve(p), far=ex.far||[];
+  const arm=(k,c)=>{const a=J[k];return limb(a,9.5,c)+stroke([a[2],add(a[2],[.01,0])],11.5,c);};
+  const leg=(k,c)=>{const a=J[k];return limb([a[2],a[3]],8.5,c)+limb(a.slice(0,3),12.5,c);};
+  let s='';
+  if(p.lift>.01) s+=`<g class="shadow" transform="translate(${f(3*p.lift)},${f(7*p.lift)})">${stroke(J.aL,10,'')}${stroke(J.aR,10,'')}</g>`;
+  for(const k of ['lL','aL','lR','aR']) if(far.includes(k)) s+=(k[0]==='l'?leg:arm)(k,'far');
+  for(const k of ['lL','lR']) if(!far.includes(k)) s+=leg(k,'near');
+  s+=limb([J.sh,J.hc],8.5,'near');
+  if(p.sw>3){
+    const q=pts([J.shL,J.shR,J.midR,J.hipR,J.hipL,J.midL]);
+    s+=`<polygon class="ol" points="${q}" stroke-width="16.6"/><polygon class="near" points="${q}" stroke-width="13"/>`;
+  }else{
+    // Stop the trunk short of the shoulder joint so its round cap leaves the neck visible.
+    const top=add(J.sh,dir(p.thor),-6);
+    const c=[2*J.mid[0]-(J.hip[0]+top[0])/2, 2*J.mid[1]-(J.hip[1]+top[1])/2];
+    const d=`M${pts([J.hip])} Q${pts([c])} ${pts([top])}`;
+    s+=`<path class="ol" d="${d}" stroke-width="28.6"/><path class="near" d="${d}" stroke-width="25"/>`;
+  }
+  const rot=ex.face==='side'?p.head:ex.face==='front'?p.head+90:0;
+  s+=`<g transform="translate(${f(J.hc[0])},${f(J.hc[1])}) rotate(${f(rot)})">`;
+  if(ex.face==='side') s+='<path class="head" d="M-1,-13 C6,-13.5 10.4,-9 10.8,-3.4 L14.8,2 L11.4,3.6 L11.6,7.4 C11.6,11.2 9.4,13.4 6.2,13 L-1,11.6 C-7.4,10.4 -11.6,5.6 -11.6,-1.2 C-11.6,-8 -7,-13 -1,-13 Z"/><circle class="eye" cx="5.6" cy="-3" r="1.4"/>';
+  else if(ex.face==='front') s+='<ellipse class="near" rx="10.6" ry="12.6"/><circle class="eye" cx="-4" cy="-1.6" r="1.35"/><circle class="eye" cx="4" cy="-1.6" r="1.35"/>';
+  else s+='<ellipse class="near" rx="11.5" ry="10.6"/>';
+  s+='</g>';
+  for(const k of ['aL','aR']) if(!far.includes(k)) s+=arm(k,'near');
+  if(ex.focus && p.fx>.01){
+    const [x,y,r]=ex.focus(J,p);
+    s+=`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r*(1+.07*Math.sin(t*3.2)))}" fill="url(#npGlow)" opacity="${f(p.fx*.95)}"/>`;
+  }
+  if(ex.arrow && p.ar>.01){
+    let [x1,y1,x2,y2]=ex.arrow(J,p);
+    const a=Math.atan2(y2-y1,x2-x1), b=2*Math.sin(t*4), h=6.5;
+    x1+=b*Math.cos(a);x2+=b*Math.cos(a);y1+=b*Math.sin(a);y2+=b*Math.sin(a);
+    const w=g=>f(x2-h*Math.cos(a+g))+','+f(y2-h*Math.sin(a+g));
+    s+=`<g class="arrow" opacity="${f(p.ar)}"><line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/><polyline points="${w(.55)} ${f(x2)},${f(y2)} ${w(-.55)}"/></g>`;
+  }
+  return s;
+}
+
+const base={sw:0,hw:0,lift:0,fx:0,ar:0,fs:0};
+const P=(...o)=>Object.assign({},base,...o);
+const label=(x,y,t,a='start')=>`<text class="lbl" x="${x}" y="${y}" text-anchor="${a}">${t}</text>`;
+const floor=y=>`<line class="floor" x1="-50" x2="450" y1="${y}" y2="${y}"/>`;
+
+// Side plank is built from the hip-sag angle so the support elbow and the feet stay planted.
+function plank(phi,o){
+  const s=Math.sin(rad(phi)), c=Math.cos(rad(phi));
+  return P({hip:[132+19*s+52*c, 186-19*c+52*s], lum:180+phi, thor:180+phi, sw:19, hw:9,
+    neck:177+phi, head:177+phi, aL:[90,12,1,.45], aR:[phi-30,phi+50],
+    lL:{to:[264,212],bend:1,ft:20}, lR:{to:[268.6,194.8],bend:1,ft:20}, ftLen:6}, o);
+}
+
+const supine={hip:[240,187],lum:180,thor:180,aR:[2,0],aL:[2,0],lR:{to:[300,193],bend:-1,ft:0},lL:{to:[307,193],bend:-1,ft:0}};
+const roller={hip:[262,187.5],lumLen:36,thorLen:16,lum:210,aR:{to:'head',bend:1},aL:{to:'head',bend:1},lR:{to:[322,193],bend:-1,ft:0},lL:{to:[329,193],bend:-1,ft:0}};
+const stand={hip:[200,152],lum:270,thor:270,sw:19,hw:9,neck:270,head:270,lR:[86,90,25],lL:[94,90,155],ftLen:8};
+const prone={hip:[215,140],lum:180,thor:180,sw:19,hw:9,neck:180,head:0,lR:[-2,0,0],lL:[2,0,0],ftLen:8};
+const door={lum:270,thor:270,head:0,aL:[88,84],lL:{to:[180,233],bend:-1,ft:0}};
+const bust={hip:[200,156],lum:270,thor:270,sw:19,hw:9,lR:[86,90,25],lL:[94,90,155],ftLen:8};
+const quad={hip:[185,156],lum:349,thor:349,neck:345,head:80};
+const kneel=[92,176,180], reachLeg=[186,182,120], prop=[90,90], reachArm=[-8,-4];
+
+const EX=[
+{ name:'Supine chin tuck', short:'Chin tuck', why:'Wakes up the deep neck flexors that hold the head back over the shoulders.',
+  dose:'10 reps · hold 5–10 s', face:'side', vb:'128 100 208 130',
+  cues:['Glide the chin straight back, making a “double chin”. Don’t nod down.','The back of the head stays on the floor and slides away from the shoulders.','Jaw and shoulders stay relaxed; keep breathing.'],
+  tip:'After 2–3 weeks, hold the tuck with the head hovering 1 cm off the floor.',
+  props:floor(200)+'<rect class="mat" x="120" y="200" width="225" height="5" rx="2.5"/>',
+  focus:J=>[J.sh[0]-11,J.sh[1]+2,19], arrow:J=>[J.hc[0]+9,J.hc[1]-36,J.hc[0]+9,J.hc[1]-20],
+  frames:[
+    {p:P(supine,{neck:184,head:-112}), t:[1.2,.9], say:['Release','Relax']},
+    {p:P(supine,{neck:178,head:-72,fx:1,ar:1}), t:[1.3,2.6], say:['Glide the chin straight back','Hold 5–10 s']} ] },
+{ name:'Upper-back extension over a roller', short:'Upper-back extension', why:'Opens the rounded upper back that pushes the head forward.',
+  dose:'3 positions · 5 slow breaths each', face:'side', vb:'110 70 256 160', far:['aL'],
+  cues:['Roller or rolled towel sits under the shoulder blades, never under the lower back.','Support the head with your hands and let the upper back open over the roller.','Keep the ribs down so the lower back doesn’t arch.'],
+  tip:'Move the roller 2–3 cm up or down for each of the three positions.',
+  props:floor(200)+'<circle class="obj" cx="231" cy="190" r="9.5"/>'+label(231,214,'roller','middle'),
+  focus:J=>[J.mid[0]-4,J.mid[1]-4,24],
+  frames:[
+    {p:P(roller,{thor:202,neck:200,head:-76}), t:[1.5,.8], say:['Curl back up','Breathe in']},
+    {p:P(roller,{thor:162,neck:152,head:-112,fx:1}), t:[1.9,2.6], say:['Lean back over the roller','5 slow breaths']} ] },
+{ name:'Wall slides', short:'Wall slides', why:'Trains the shoulder blades to sit back and down while the chin stays tucked.',
+  dose:'2 sets of 10', face:'front', vb:'28 30 344 215',
+  cues:['Back, hips and head on the wall, chin gently tucked.','Slide the arms from a W up to a Y, keeping wrists and elbows as close to the wall as you can.','Pull the shoulder blades down as you return.'],
+  tip:'Only go as high as you can without the lower back leaving the wall.',
+  props:'<rect class="wall" x="70" y="36" width="260" height="204" rx="4"/>'+label(78,50,'wall')+floor(240),
+  focus:J=>[J.sh[0],J.sh[1]+13,26],
+  frames:[
+    {p:P(stand,{aR:[25,-80],aL:[155,260],fx:1}), t:[1.6,.9], say:['Slide back down to a W','Squeeze the shoulder blades down']},
+    {p:P(stand,{aR:[-58,-70],aL:[238,250],fx:.35}), t:[1.9,1.1], say:['Slide the arms up to a Y','Wrists and elbows on the wall']} ] },
+{ name:'Prone Y-T-W raises', short:'Prone Y-T-W', why:'Strengthens the mid and lower trapezius that pull the shoulders back.',
+  dose:'2 sets of 8 per letter · no weight', face:'top', vb:'52 40 320 200',
+  cues:['Lie face down with the forehead on a folded towel, neck long.','Lift the arms a few centimetres by squeezing the shoulder blades back and down.','Thumbs point to the ceiling; don’t shrug.'],
+  tip:'Seen from above: the shadow under the arms shows the lift.',
+  props:'<rect class="mat" x="112" y="104" width="206" height="72" rx="8"/><rect class="obj" x="128" y="129" width="24" height="22" rx="4"/>'+label(366,232,'seen from above','end'),
+  focus:J=>[J.sh[0]+10,J.sh[1],27],
+  frames:(()=>{
+    const Y={aR:[215,215],aL:[145,145]}, T={aR:[270,270],aL:[90,90]}, W={aR:[300,205],aL:[60,155]}, up={lift:1,fx:1}, out=[];
+    for(const [n,a] of [['Y',Y],['T',T],['W',W]]) out.push(
+      {p:P(prone,a), t:[1,.3], say:['Arms to a '+n,'Arms to a '+n]},
+      {p:P(prone,a,up), t:[.7,1.4], say:[n+': lift, thumbs up',n+': hold 2 s']},
+      {p:P(prone,a), t:[.7,.15], say:['Lower','Lower']});
+    return out; })() },
+{ name:'Doorway chest stretch', short:'Doorway stretch', why:'Lengthens tight chest muscles that pull the shoulders forward.',
+  dose:'2 × 30 s per side', face:'side', vb:'28 30 344 215', far:['aL','lL'],
+  cues:['Forearm on the door frame, elbow at shoulder height.','Step through with one foot until you feel a stretch across the chest.','Ribs down and chin tucked; don’t arch the lower back.'],
+  tip:'You should feel a stretch, never pain or tingling down the arm.',
+  props:'<rect class="solid" x="202" y="30" width="10" height="209.5"/>'+label(218,46,'door frame')+floor(239.5),
+  focus:J=>[J.sh[0]+5,J.sh[1]+10,23],
+  frames:[
+    {p:P(door,{hip:[184,155],neck:272,aR:[0,270,.82],lR:{to:[190,233],bend:-1,ft:0}}), t:[1.6,.8], say:['Step back','Reset']},
+    {p:P(door,{hip:[206,158],lum:274,thor:278,neck:274,aR:[0,270,-.157],lR:{to:[228,233],bend:-1,ft:0},fx:1}), t:[2,2.8], say:['Step through the doorway','Hold 30 s']} ] },
+{ name:'Upper-trapezius stretch', short:'Trapezius stretch', why:'Releases the muscle that hikes the shoulder toward the ear.',
+  dose:'2 × 30 s per side', face:'front', vb:'88 24 224 140',
+  cues:['Sit or stand tall and let one ear drop toward the shoulder.','Rest the hand on the head; its weight is enough, don’t pull.','Reach the opposite hand toward the floor.'],
+  tip:'Levator variation: turn the nose toward the armpit, then tilt. Add one extra set on the tighter side.',
+  props:'',
+  focus:(J,p)=>[J.sh[0]+p.fs*13,J.sh[1]-10,18],
+  frames:(()=>{
+    const C={p:P(bust,{neck:270,head:270,aR:[85,88],aL:[95,92]}), t:[1.4,.5], say:['Return to centre','Switch sides']};
+    return [C,
+      {p:P(bust,{neck:292,head:300,aR:[-74,-177],aL:[97,94],fx:1,fs:-1}), t:[1.8,2.6], say:['Ear toward the shoulder','Hold 30 s, gently']},
+      C,
+      {p:P(bust,{neck:248,head:240,aL:[254,357],aR:[83,86],fx:1,fs:1}), t:[1.8,2.6], say:['Ear toward the shoulder','Hold 30 s, gently']}]; })() },
+{ name:'Bird-dog', short:'Bird-dog', why:'Builds trunk stability without bending the lumbar discs.',
+  dose:'3 × 10 s holds per side', face:'side', vb:'33 50 320 200', far:['aL','lL'],
+  cues:['Hands under shoulders, knees under hips, spine neutral.','Reach the opposite arm and leg until level with the back, no higher.','Hips stay square, as if balancing a glass of water on the lower back.'],
+  tip:'Look at the floor a little ahead of your hands so the neck stays long.',
+  props:floor(205)+'<rect class="mat" x="80" y="205" width="230" height="5" rx="2.5"/>',
+  focus:J=>[J.mid[0],J.mid[1]+2,25],
+  frames:(()=>{
+    const Q={p:P(quad,{aR:prop,aL:prop,lR:kneel,lL:kneel}), t:[1.4,.5], say:['Return to all fours','Switch sides']};
+    return [Q,
+      {p:P(quad,{aR:reachArm,aL:prop,lR:kneel,lL:reachLeg,fx:1}), t:[1.7,2.4], say:['Reach opposite arm and leg','Hold 10 s, hips level']},
+      Q,
+      {p:P(quad,{aR:prop,aL:reachArm,lR:reachLeg,lL:kneel,fx:1}), t:[1.7,2.4], say:['Reach opposite arm and leg','Hold 10 s, hips level']}]; })() },
+{ name:'Side plank', short:'Side plank', why:'Strengthens the side trunk muscles that keep the spine stacked.',
+  dose:'3 × 10 s holds per side', face:'front', vb:'30 55 320 200',
+  cues:['Elbow directly under the shoulder.','Lift the hips until ear, shoulder, hip and ankle form one line.','Don’t let the hips sag or roll forward.'],
+  tip:'Too hard? Bend the knees and support yourself from the lower knee.',
+  props:floor(219)+'<rect class="mat" x="96" y="219" width="200" height="5" rx="2.5"/>',
+  focus:J=>[J.mid[0]-3,J.mid[1]+7,25],
+  frames:[
+    {p:plank(34), t:[1.3,.7], say:['Lower with control','Rest']},
+    {p:plank(15.5,{fx:1}), t:[1.4,2.6], say:['Lift the hips into a straight line','Hold 10 s']} ] }
+];
+for(const e of EX) e.total=e.frames.reduce((s,k)=>s+k.t[0]+k.t[1],0);
+
+function at(ex,time){
+  let x=time%ex.total;
+  for(let i=0;i<ex.frames.length;i++){
+    const k=ex.frames[i], prev=ex.frames[(i||ex.frames.length)-1];
+    if(x<k.t[0]) return {p:lerp(prev.p,k.p,ease(x/k.t[0])), say:k.say[0], hold:false, u:x/k.t[0]};
+    x-=k.t[0];
+    if(x<k.t[1]) return {p:k.p, say:k.say[1], hold:true, u:x/k.t[1]};
+    x-=k.t[1];
+  }
+  return {p:ex.frames[0].p, say:'', hold:false, u:0};
+}
+
+const $=id=>document.getElementById(id);
+const hash=location.hash.slice(1);
+
+// "#sheet" (or "#sheet=5,6") lays out every key pose and mid-transition statically, for checking poses.
+if(hash.startsWith('sheet')){
+  const only=hash.includes('=')?hash.split('=')[1].split(',').map(Number):null;
+  let h='';
+  for(const ex of EX){
+    if(only && !only.includes(EX.indexOf(ex)+1)) continue;
+    let t=0;
+    for(const k of ex.frames){
+      for(const tt of [t+k.t[0]/2, t+k.t[0]+k.t[1]/2])
+        h+=`<div class="np-thumb"><svg viewBox="${ex.vb}"><g class="props">${ex.props}</g><g class="fig">${draw(ex,at(ex,tt).p,0)}</g></svg><div>${ex.short} @ ${tt.toFixed(1)}s</div></div>`;
+      t+=k.t[0]+k.t[1];
+    }
+  }
+  document.querySelector('.np').innerHTML=`<div class="np-thumbs">${h}</div>`;
+  return;
+}
+
+let cur=0, playing=true, speed=1, T=0, clock=0, last=performance.now(), tick=0, said='';
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+$('thumbs').innerHTML=EX.map((e,i)=>`<div class="np-thumb" role="button" tabindex="0" data-i="${i}" aria-label="${e.name}"><svg viewBox="${e.vb}"><g class="props">${e.props}</g><g class="fig"></g></svg><div>${i+1}. ${e.short}</div></div>`).join('');
+const thumbs=[...document.querySelectorAll('.np-thumb')], thumbFig=thumbs.map(t=>t.querySelector('.fig'));
+const holdTime=e=>{let t=0,best=0,bt=0;for(const k of e.frames){t+=k.t[0];if(k.t[1]>best){best=k.t[1];bt=t+k.t[1]/2;}t+=k.t[1];}return bt;};
+
+function select(i,t0=0){
+  cur=(i+EX.length)%EX.length; T=t0;
+  const e=EX[cur];
+  $('stage').setAttribute('viewBox',e.vb);
+  $('props').innerHTML=e.props;
+  $('step').textContent=`Exercise ${cur+1} of ${EX.length}`;
+  $('name').textContent=e.name; $('why').textContent=e.why; $('dose').textContent=e.dose; $('tip').textContent=e.tip;
+  $('cues').innerHTML=e.cues.map(c=>`<li>${c}</li>`).join('');
+  thumbs.forEach((t,j)=>t.setAttribute('aria-current',j===cur));
+  render();
+}
+function render(){
+  const e=EX[cur], s=at(e,T);
+  $('fig').innerHTML=draw(e,s.p,clock);
+  if(s.say!==said){said=s.say;$('phase').textContent=said;}
+  $('kind').textContent=s.hold?'hold':'move';
+  $('bar').className=s.hold?'hold':'';
+  $('bar').style.width=(s.u*100).toFixed(1)+'%';
+}
+function renderThumbs(){
+  EX.forEach((e,i)=>{thumbFig[i].innerHTML=draw(e,at(e,still?holdTime(e):clock+i*.7).p,clock);});
+}
+function setPlaying(v){playing=v;$('play').textContent=v?'Pause':'Play';}
+
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(playing){
+    T+=dt*speed; clock+=dt*speed;
+    if($('auto').checked && T>=EX[cur].total*2) select(cur+1); else render();
+    if(!still && (tick++&1)) renderThumbs();
+  }
+  requestAnimationFrame(loop);
+}
+
+$('prev').onclick=()=>select(cur-1);
+$('next').onclick=()=>select(cur+1);
+$('play').onclick=()=>setPlaying(!playing);
+$('speed').onchange=e=>{speed=+e.target.value;};
+thumbs.forEach(t=>{
+  t.onclick=()=>select(+t.dataset.i);
+  t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(+t.dataset.i);}};
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('select,input,button,[role=button]')) return;
+  if(e.key==='ArrowRight') select(cur+1);
+  else if(e.key==='ArrowLeft') select(cur-1);
+  else if(e.key===' '){e.preventDefault();setPlaying(!playing);}
+});
+
+// "#3@2.5" opens exercise 3 paused at 2.5 s.
+const m=hash.match(/^(\d+)@([\d.]+)$/);
+if(m){setPlaying(false);clock=+m[2];select(m[1]-1,+m[2]);}
+else{ if(still) setPlaying(false); select(0, still?holdTime(EX[0]):0); }
+renderThumbs();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
