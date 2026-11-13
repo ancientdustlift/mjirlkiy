@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="nebula">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MegaCalc — the everything calculator</title>
+<style>
+:root,[data-theme=nebula]{--bg:#0b0720;--bg2:#1b0f3a;--glow1:#7c3aed;--glow2:#ec4899;--panel:rgba(255,255,255,.06);--line:rgba(255,255,255,.13);--text:#f3efff;--muted:#a79fc6;--acc:#a78bfa;--acc2:#f472b6;--key:rgba(255,255,255,.07);--onacc:#14092e}
+[data-theme=ocean]{--bg:#03131f;--bg2:#062a3d;--glow1:#0891b2;--glow2:#2563eb;--text:#e8f8ff;--muted:#8fb4c7;--acc:#22d3ee;--acc2:#60a5fa;--onacc:#03131f}
+[data-theme=sunset]{--bg:#1f0a12;--bg2:#3b1020;--glow1:#ea580c;--glow2:#e11d48;--text:#fff1ea;--muted:#d0a59b;--acc:#fb923c;--acc2:#fb7185;--onacc:#1f0a12}
+[data-theme=matrix]{--bg:#020a04;--bg2:#04170a;--glow1:#15803d;--glow2:#65a30d;--text:#dcfce7;--muted:#7fae8c;--acc:#4ade80;--acc2:#a3e635;--onacc:#020a04}
+[data-theme=paper]{--bg:#f4efe6;--bg2:#e6dccb;--glow1:#fdba74;--glow2:#99f6e4;--panel:rgba(255,255,255,.72);--line:rgba(0,0,0,.14);--text:#2a2420;--muted:#7a6f65;--acc:#c2410c;--acc2:#0f766e;--key:rgba(0,0,0,.055);--onacc:#fff}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+[data-theme=paper]{color-scheme:light}
+body{margin:0;min-height:100vh;color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:radial-gradient(60vw 50vh at 12% -5%,color-mix(in srgb,var(--glow1) 45%,transparent),transparent 70%),
+  radial-gradient(55vw 55vh at 100% 100%,color-mix(in srgb,var(--glow2) 35%,transparent),transparent 70%),
+  linear-gradient(160deg,var(--bg),var(--bg2));background-attachment:fixed;transition:color .3s}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:22px 16px 48px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+h1{margin:0;font-size:clamp(26px,5vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1;
+  background:linear-gradient(90deg,var(--acc),var(--acc2),var(--acc));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+.tag{color:var(--muted);font-size:13px;flex:1;min-width:160px}
+.tools{display:flex;align-items:center;gap:8px}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.dot[aria-pressed=true]{outline:2px solid var(--text);outline-offset:2px}
+button{font:inherit;color:inherit}
+.ghost{background:var(--key);border:1px solid var(--line);border-radius:10px;padding:6px 11px;cursor:pointer}
+.ghost:hover{border-color:var(--acc)}
+nav{display:flex;gap:6px;overflow-x:auto;padding:5px;margin-bottom:16px;background:var(--panel);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(14px)}
+nav button{flex:1;white-space:nowrap;background:none;border:0;border-radius:11px;padding:9px 14px;cursor:pointer;color:var(--muted);font-weight:600}
+nav button[aria-selected=true]{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--onacc)}
+section[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;backdrop-filter:blur(14px);box-shadow:0 20px 50px -30px #000}
+.card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stack{display:grid;gap:16px;align-content:start}
+@media(max-width:860px){.cols,.cols3{grid-template-columns:minmax(0,1fr)}}
+
+.display{border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:14px;background:color-mix(in srgb,var(--bg) 55%,transparent)}
+.display.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.prev,.live{min-height:20px;text-align:right;color:var(--muted);font:13px ui-monospace,Menlo,Consolas,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prev.err{color:#f87171}
+#expr{width:100%;border:0;outline:0;background:none;color:var(--text);text-align:right;font:600 clamp(24px,5vw,38px) ui-monospace,Menlo,Consolas,monospace;padding:2px 0}
+.badges{display:flex;gap:8px;font-size:11px;color:var(--muted);min-height:16px}
+.badges b{color:var(--acc)}
+.keys{display:grid;gap:7px}
+.keys.fn{grid-template-columns:repeat(6,1fr);margin-bottom:10px}
+.keys.num{grid-template-columns:repeat(5,1fr)}
+.key{background:var(--key);border:1px solid var(--line);border-radius:12px;padding:0;height:44px;cursor:pointer;font-weight:600;transition:transform .06s,background .15s,border-color .15s;user-select:none}
+.keys.fn .key{height:36px;font-size:13px;color:var(--muted)}
+.keys.num .key{font-size:18px}
+.key:hover{border-color:var(--acc);color:var(--text)}
+.key:active{transform:scale(.94)}
+.key.op{color:var(--acc)}
+.key.eq{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--onacc);border:0}
+.key.warn{color:var(--acc2)}
+.key.on{background:var(--acc);color:var(--onacc)}
+.rows{display:grid;gap:6px;margin:0}
+.rows div{display:flex;justify-content:space-between;gap:14px;border-bottom:1px dashed var(--line);padding-bottom:5px}
+.rows dt,.rows span:first-child{color:var(--muted);flex:none}
+.rows dd,.rows span:last-child{margin:0;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.hist{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto;display:grid;gap:6px}
+.hist button{width:100%;text-align:right;background:var(--key);border:1px solid transparent;border-radius:10px;padding:7px 10px;cursor:pointer;font-family:ui-monospace,Menlo,Consolas,monospace}
+.hist button:hover{border-color:var(--acc)}
+.hist small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--muted);font-size:13px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.head h2{margin:0}
+.tip{color:var(--muted);font-size:12.5px;margin:12px 0 0}
+kbd{font:12px ui-monospace,monospace;background:var(--key);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+
+input[type=text],input[type=number],input[type=date],select{width:100%;background:color-mix(in srgb,var(--bg) 55%,transparent);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px 11px;font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;outline:0}
+input:focus,select:focus{border-color:var(--acc)}
+input.bad{border-color:#f87171}
+label{display:grid;gap:4px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.big{font:700 28px ui-monospace,Menlo,Consolas,monospace;color:var(--acc);margin:6px 0 10px;overflow-wrap:anywhere}
+
+#gwrap{position:relative;height:min(62vh,520px);border-radius:14px;overflow:hidden;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 60%,transparent)}
+#graph{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#graph:active{cursor:grabbing}
+#gread{position:absolute;left:10px;top:10px;font:12px ui-monospace,monospace;background:color-mix(in srgb,var(--bg) 80%,transparent);border:1px solid var(--line);border-radius:8px;padding:5px 8px;pointer-events:none}
+.gzoom{position:absolute;right:10px;top:10px;display:flex;gap:6px}
+.fnrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.fnrow i{width:12px;height:12px;border-radius:50%;flex:none}
+.fnrow span{color:var(--muted);font-family:ui-monospace,monospace;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--key);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:13px}
+.chip:hover{border-color:var(--acc)}
+.chip[aria-pressed=true]{background:var(--acc);color:var(--onacc);border-color:transparent}
+
+.convrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
+.swap{display:block;margin:2px auto 10px}
+.utable button{display:flex;justify-content:space-between;gap:12px;width:100%;background:none;border:0;border-bottom:1px dashed var(--line);padding:6px 2px;cursor:pointer;text-align:left}
+.utable button:hover{color:var(--acc)}
+.utable button span:last-child{font-family:ui-monospace,monospace;overflow-wrap:anywhere;text-align:right}
+
+.bits{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.byte{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;flex:1;min-width:190px}
+.byte small{grid-column:1/-1;color:var(--muted);font-size:11px}
+.bit{height:32px;border-radius:7px;border:1px solid var(--line);background:var(--key);cursor:pointer;font:600 13px ui-monospace,monospace;padding:0}
+.bit.on{background:var(--acc);color:var(--onacc);border-color:transparent}
+.ops{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.binop{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:8px}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--line);vertical-align:-2px;margin-right:6px}
+
+.split{display:flex;height:14px;border-radius:999px;overflow:hidden;margin:8px 0 4px;background:var(--key)}
+.split i:first-child{background:var(--acc)}.split i:last-child{background:var(--acc2)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.bars{display:flex;align-items:flex-end;gap:2px;height:120px;margin-top:10px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:2px}
+.bars i{display:block;background:var(--acc)}.bars i+i{background:var(--acc2)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(prefers-reduced-motion:reduce){h1{animation:none}.key{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="app">
+  <header>
+    <h1>MEGACALC</h1>
+    <div class="tag">Six calculators in one: scientific, graphing, units, bits, money and dates.</div>
+    <div class="tools">
+      <span id="themes" class="tools" role="group" aria-label="Theme"></span>
+      <button class="ghost" id="sound" aria-pressed="false" title="Key sounds">🔇</button>
+    </div>
+  </header>
+
+  <nav role="tablist" id="tabs">
+    <button role="tab" data-tab="sci">🧮 Scientific</button>
+    <button role="tab" data-tab="graph">📈 Graph</button>
+    <button role="tab" data-tab="conv">📏 Convert</button>
+    <button role="tab" data-tab="prog">💾 Programmer</button>
+    <button role="tab" data-tab="fin">💰 Finance</button>
+    <button role="tab" data-tab="date">📅 Dates</button>
+  </nav>
+
+  <!-- Scientific -->
+  <section id="tab-sci" class="cols">
+    <div class="card">
+      <div class="display" id="display">
+        <div class="badges"><span id="modeBadge"></span><span id="memBadge"></span></div>
+        <div class="prev" id="prev"></div>
+        <input id="expr" type="text" inputmode="none" autocomplete="off" spellcheck="false" aria-label="Expression" placeholder="0">
+        <div class="live" id="live"></div>
+      </div>
+      <div class="keys fn" id="fnKeys"></div>
+      <div class="keys num" id="numKeys"></div>
+      <p class="tip">Type anywhere: <kbd>Enter</kbd> solves, <kbd>Esc</kbd> clears. Try <kbd>2π sin(30)</kbd>, <kbd>200+15%</kbd>, <kbd>52!/(5!·47!)</kbd>, <kbd>gcd(84,36)</kbd> or <kbd>hypot(3,4)</kbd>.</p>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h2>Number insights</h2>
+        <div id="insights" class="rows"><p class="empty">Solve something and this panel tells you what is special about the answer.</p></div>
+      </div>
+      <div class="card">
+        <div class="head"><h2>History</h2><button class="ghost" id="histClear">Clear</button></div>
+        <ul class="hist" id="hist"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Graph -->
+  <section id="tab-graph" class="cols" hidden>
+    <div class="card">
+      <div id="gwrap">
+        <canvas id="graph"></canvas>
+        <div id="gread">drag to pan · scroll to zoom</div>
+        <div class="gzoom">
+          <button class="ghost" data-z="1.4" aria-label="Zoom in">+</button>
+          <button class="ghost" data-z="0.714" aria-label="Zoom out">−</button>
+          <button class="ghost" data-z="0">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h2>Functions of x</h2>
+        <div id="fnRows"></div>
+        <p class="tip">Angles are in radians here. Anything the scientific tab understands works.</p>
+      </div>
+      <div class="card">
+        <h2>Try one</h2>
+        <div class="chips" id="presets"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Convert -->
+  <section id="tab-conv" class="cols" hidden>
+    <div class="card">
+      <h2>Unit converter</h2>
+      <div class="chips" id="cats" style="margin-bottom:14px"></div>
+      <div class="convrow"><input type="text" id="cvA" aria-label="From value" value="1"><select id="cuA" aria-label="From unit"></select></div>
+      <button class="ghost swap" id="cswap" aria-label="Swap units">⇅ swap</button>
+      <div class="convrow"><input type="text" id="cvB" aria-label="To value"><select id="cuB" aria-label="To unit"></select></div>
+      <p class="tip">Both boxes accept maths, so <kbd>5*12</kbd> or <kbd>sqrt(2)</kbd> work.</p>
+    </div>
+    <div class="card">
+      <h2 id="utitle">In every unit</h2>
+      <div class="utable" id="utable"></div>
+    </div>
+  </section>
+
+  <!-- Programmer -->
+  <section id="tab-prog" class="cols" hidden>
+    <div class="card">
+      <h2>32-bit value</h2>
+      <div class="two">
+        <label>HEX<input type="text" id="pHex" spellcheck="false"></label>
+        <label>DEC<input type="text" id="pDec" spellcheck="false"></label>
+        <label>OCT<input type="text" id="pOct" spellcheck="false"></label>
+        <label>BIN<input type="text" id="pBin" spellcheck="false"></label>
+      </div>
+      <div class="bits" id="bits"></div>
+      <div class="ops" id="pOps"></div>
+      <div class="binop">
+        <select id="pOp" aria-label="Operation"><option>AND</option><option>OR</option><option>XOR</option><option>+</option><option>−</option><option>×</option></select>
+        <input type="text" id="pB" aria-label="Operand" value="0xFF" spellcheck="false">
+        <button class="ghost" id="pApply">Apply</button>
+      </div>
+      <p class="tip">Click any bit to flip it. The operand accepts <kbd>255</kbd>, <kbd>0xFF</kbd>, <kbd>0b1111</kbd> or <kbd>0o17</kbd>.</p>
+    </div>
+    <div class="card">
+      <h2>Also means</h2>
+      <dl class="rows" id="pInfo"></dl>
+    </div>
+  </section>
+
+  <!-- Finance -->
+  <section id="tab-fin" class="cols3" hidden>
+    <div class="card">
+      <h2>Loan payment</h2>
+      <label>Amount<input type="number" id="lP" value="250000" min="0"></label>
+      <div class="two">
+        <label>Rate % / year<input type="number" id="lR" value="6.5" step="0.05" min="0"></label>
+        <label>Years<input type="number" id="lY" value="30" min="1"></label>
+      </div>
+      <div class="big" id="lPay"></div>
+      <div class="split" id="lSplit"><i></i><i></i></div>
+      <div class="legend"><span><i style="background:var(--acc)"></i>principal</span><span><i style="background:var(--acc2)"></i>interest</span></div>
+      <dl class="rows" id="lInfo" style="margin-top:12px"></dl>
+    </div>
+    <div class="card">
+      <h2>Compound growth</h2>
+      <div class="two">
+        <label>Starting sum<input type="number" id="cP" value="5000" min="0"></label>
+        <label>Monthly add<input type="number" id="cM" value="300" min="0"></label>
+        <label>Return % / year<input type="number" id="cR" value="7" step="0.1"></label>
+        <label>Years<input type="number" id="cY" value="25" min="1" max="60"></label>
+      </div>
+      <div class="big" id="cOut"></div>
+      <div class="legend"><span><i style="background:var(--acc)"></i>growth</span><span><i style="background:var(--acc2)"></i>paid in</span></div>
+      <div class="bars" id="cBars"></div>
+      <dl class="rows" id="cInfo" style="margin-top:12px"></dl>
+    </div>
+    <div class="card">
+      <h2>Tip &amp; split</h2>
+      <label>Bill<input type="number" id="tB" value="86.40" step="0.01" min="0"></label>
+      <label>Tip <span id="tPctL"></span><input type="range" id="tPct" min="0" max="40" value="18"></label>
+      <label>People<input type="number" id="tN" value="3" min="1"></label>
+      <div class="big" id="tEach"></div>
+      <dl class="rows" id="tInfo"></dl>
+    </div>
+  </section>
+
+  <!-- Dates -->
+  <section id="tab-date" class="cols3" hidden>
+    <div class="card">
+      <h2>Between two dates</h2>
+      <label>From<input type="date" id="dA"></label>
+      <label>To<input type="date" id="dB"></label>
+      <div class="big" id="dOut"></div>
+      <dl class="rows" id="dInfo"></dl>
+    </div>
+    <div class="card">
+      <h2>Add or subtract</h2>
+      <label>Start<input type="date" id="aD"></label>
+      <div class="two">
+        <label>Amount<input type="number" id="aN" value="100"></label>
+        <label>Unit<select id="aU"><option>days</option><option>weeks</option><option>months</option><option>years</option></select></label>
+      </div>
+      <div class="big" id="aOut"></div>
+      <dl class="rows" id="aInfo"></dl>
+    </div>
+    <div class="card">
+      <h2>Birthday</h2>
+      <label>Born on<input type="date" id="bD" value="1995-06-15"></label>
+      <div class="big" id="bOut"></div>
+      <dl class="rows" id="bInfo"></dl>
+    </div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+function el(tag, props = {}, ...kids) {
+  const n = Object.assign(document.createElement(tag), props);
+  n.append(...kids);
+  return n;
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('megacalc:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('megacalc:' + k, JSON.stringify(v)); } catch {} }
+};
+
+/* ───────── Expression engine (no eval) ───────── */
+const CONSTS = { pi: Math.PI, e: Math.E, tau: 2 * Math.PI, phi: (1 + Math.sqrt(5)) / 2, inf: Infinity };
+const SYMBOLS = { '×': '*', '·': '*', '÷': '/', '−': '-', 'π': 'pi', 'φ': 'phi', 'τ': 'tau', '√': 'sqrt', '∛': 'cbrt', '∞': 'inf' };
+
+function gamma(z) {
+  if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+  z -= 1;
+  const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+    12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  let x = c[0];
+  for (let i = 1; i < 9; i++) x += c[i] / (z + i);
+  const t = z + 7.5;
+  return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+}
+function fact(n) {
+  if (!Number.isInteger(n)) return gamma(n + 1);
+  if (n < 0) return NaN;
+  if (n > 170) return Infinity;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+}
+function gcd(a, b) { a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); while (b) [a, b] = [b, a % b]; return a; }
+const rad = (x, deg) => deg ? x * Math.PI / 180 : x;
+const unrad = (x, deg) => deg ? x * 180 / Math.PI : x;
+// Hide floating point dust such as sin(180°) = 1.2e-16.
+const tidy = v => Math.abs(v) < 1e-15 ? 0 : Math.abs(v) > 1e15 ? NaN : v;
+const FUNCS = {
+  sin: (d, x) => tidy(Math.sin(rad(x, d))), cos: (d, x) => tidy(Math.cos(rad(x, d))), tan: (d, x) => tidy(Math.tan(rad(x, d))),
+  asin: (d, x) => unrad(Math.asin(x), d), acos: (d, x) => unrad(Math.acos(x), d), atan: (d, x) => unrad(Math.atan(x), d),
+  atan2: (d, y, x) => unrad(Math.atan2(y, x), d),
+  sinh: (d, x) => Math.sinh(x), cosh: (d, x) => Math.cosh(x), tanh: (d, x) => Math.tanh(x),
+  ln: (d, x) => Math.log(x), log: (d, x) => Math.log10(x), log2: (d, x) => Math.log2(x), exp: (d, x) => Math.exp(x),
+  sqrt: (d, x) => Math.sqrt(x), cbrt: (d, x) => Math.cbrt(x), root: (d, x, n) => Math.pow(x, 1 / n),
+  abs: (d, x) => Math.abs(x), sign: (d, x) => Math.sign(x),
+  floor: (d, x) => Math.floor(x), ceil: (d, x) => Math.ceil(x), round: (d, x) => Math.round(x),
+  fact: (d, x) => fact(x), min: (d, ...a) => Math.min(...a), max: (d, ...a) => Math.max(...a), hypot: (d, ...a) => Math.hypot(...a),
+  gcd: (d, a, b) => gcd(a, b), lcm: (d, a, b) => Math.abs(Math.round(a) * Math.round(b)) / (gcd(a, b) || 1),
+  ncr: (d, n, k) => Math.round(fact(n) / (fact(k) * fact(n - k))), npr: (d, n, k) => Math.round(fact(n) / fact(n - k)),
+  mod: (d, a, b) => a - b * Math.floor(a / b), rand: () => Math.random()
+};
+
+function tokenize(src) {
+  const out = [];
+  const re = /\s*(?:(\d+\.?\d*(?:E[+-]?\d+)?|\.\d+(?:E[+-]?\d+)?)|([A-Za-z_][A-Za-z_0-9]*)|(\S))/y;
+  src = src.trim();
+  while (re.lastIndex < src.length) {
+    const m = re.exec(src);
+    if (!m) throw new Error('Cannot read expression');
+    if (m[1]) out.push({ t: 'num', v: parseFloat(m[1]) });
+    else if (m[2]) out.push({ t: 'id', v: m[2] });
+    else {
+      const c = SYMBOLS[m[3]] || m[3];
+      if (c === '²' || c === '³') out.push({ t: 'op', v: '^' }, { t: 'num', v: c === '²' ? 2 : 3 });
+      else if (c.length > 1) out.push({ t: 'id', v: c });
+      else if ('+-*/^%!(),'.includes(c)) out.push({ t: 'op', v: c });
+      else throw new Error(`Unexpected "${c}"`);
+    }
+  }
+  return out;
+}
+
+// Compiles to a closure taking a scope {deg, ans, x}. `vars` lists the free variables allowed.
+function compile(src, vars = []) {
+  const t = tokenize(src);
+  let i = 0;
+  const isOp = (v, k = i) => t[k] && t[k].t === 'op' && t[k].v === v;
+  const startsValue = (k = i) => t[k] && (t[k].t !== 'op' || t[k].v === '(');
+  const close = () => { if (isOp(')')) i++; else if (i < t.length) throw new Error('Missing )'); };
+
+  function expr() {
+    let l = term();
+    while (isOp('+') || isOp('-')) {
+      const sign = t[i++].v === '+' ? 1 : -1, a = l, r = term();
+      // "200 + 15%" means 15% of 200, like a desk calculator.
+      l = r.pct ? s => { const x = a(s); return x + sign * x * r(s); } : s => a(s) + sign * r(s);
+    }
+    return l;
+  }
+  function term() {
+    let l = unary();
+    for (;;) {
+      const a = l;
+      if (isOp('*')) { i++; const r = unary(); l = s => a(s) * r(s); }
+      else if (isOp('/')) { i++; const r = unary(); l = s => a(s) / r(s); }
+      else if (isOp('%')) { i++; const r = unary(); l = s => FUNCS.mod(0, a(s), r(s)); }
+      else if (startsValue()) { const r = power(); l = s => a(s) * r(s); }
+      else return l;
+    }
+  }
+  function unary() {
+    if (isOp('-')) { i++; const u = unary(); return s => -u(s); }
+    if (isOp('+')) { i++; return unary(); }
+    return power();
+  }
+  function power() {
+    const b = postfix();
+    if (!isOp('^')) return b;
+    i++;
+    const e = unary();
+    return s => Math.pow(b(s), e(s));
+  }
+  function postfix() {
+    let p = primary();
+    for (;;) {
+      const a = p;
+      if (isOp('!')) { i++; p = s => fact(a(s)); }
+      // "%" is percent unless a value follows, in which case term() reads it as modulo.
+      else if (isOp('%') && !startsValue(i + 1)) { i++; p = s => a(s) / 100; p.pct = true; }
+      else return p;
+    }
+  }
+  function primary() {
+    const k = t[i];
+    if (!k) throw new Error('Incomplete expression');
+    if (k.t === 'num') { i++; return () => k.v; }
+    if (k.t === 'id') {
+      i++;
+      const name = k.v.toLowerCase();
+      if (FUNCS[name]) {
+        if (!isOp('(')) throw new Error(`${name} needs ( )`);
+        i++;
+        const args = [];
+        if (!isOp(')') && i < t.length) { args.push(expr()); while (isOp(',')) { i++; args.push(expr()); } }
+        close();
+        const f = FUNCS[name];
+        return s => f(s.deg, ...args.map(a => a(s)));
+      }
+      if (name in CONSTS) { const v = CONSTS[name]; return () => v; }
+      if (name === 'ans') return s => s.ans || 0;
+      if (vars.includes(name)) return s => s[name];
+      throw new Error(`Unknown "${k.v}"`);
+    }
+    if (k.v === '(') { i++; const e = expr(); close(); return s => e(s); }
+    throw new Error(`Unexpected "${k.v}"`);
+  }
+  const root = expr();
+  if (i < t.length) throw new Error(`Unexpected "${t[i].v}"`);
+  return root;
+}
+
+function fmt(n) {
+  if (Number.isNaN(n)) return 'undefined';
+  if (!isFinite(n)) return n > 0 ? '∞' : '-∞';
+  if (n === 0) return '0';
+  const a = Math.abs(n);
+  if (a >= 1e15 || a < 1e-6) return n.toExponential(10).replace(/\.?0+e/, 'e').replace('e+', 'E').replace('e', 'E');
+  return String(parseFloat(n.toPrecision(12)));
+}
+const money = n => isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+const num = id => parseFloat($(id).value) || 0;
+function rows(target, list) {
+  target.replaceChildren(...list.map(([k, v]) => el('div', {}, el('dt', { textContent: k }), el('dd', {}, v))));
+}
+
+/* ───────── Themes, sound, background ───────── */
+const THEMES = { nebula: '#a78bfa', ocean: '#22d3ee', sunset: '#fb923c', matrix: '#4ade80', paper: '#f4efe6' };
+let palette = ['#a78bfa', '#f472b6'];
+function setTheme(name) {
+  if (!THEMES[name]) name = 'nebula';
+  document.documentElement.dataset.theme = name;
+  store.set('theme', name);
+  $$('#themes .dot').forEach(d => d.setAttribute('aria-pressed', d.dataset.theme === name));
+  const cs = getComputedStyle(document.documentElement);
+  palette = [cs.getPropertyValue('--acc').trim(), cs.getPropertyValue('--acc2').trim()];
+  drawGraph();
+}
+for (const [name, color] of Object.entries(THEMES)) {
+  const d = el('button', { className: 'dot', title: name });
+  d.dataset.theme = name;
+  d.style.background = color;
+  d.setAttribute('aria-label', name + ' theme');
+  d.onclick = () => setTheme(name);
+  $('#themes').append(d);
+}
+
+let soundOn = store.get('sound', false), actx;
+function blip(freq = 520) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new AudioContext();
+    const o = actx.createOscillator(), g = actx.createGain(), now = actx.currentTime;
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.06, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    o.connect(g).connect(actx.destination); o.start(); o.stop(now + 0.1);
+  } catch {}
+}
+function renderSound() { $('#sound').textContent = soundOn ? '🔊' : '🔇'; $('#sound').setAttribute('aria-pressed', soundOn); }
+$('#sound').onclick = () => { soundOn = !soundOn; store.set('sound', soundOn); renderSound(); blip(660); };
+renderSound();
+
+const fx = $('#fx'), fctx = fx.getContext('2d');
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let orbs = [], confetti = [];
+function sizeFx() {
+  fx.width = innerWidth; fx.height = innerHeight;
+  orbs = Array.from({ length: calm ? 0 : 45 }, () => ({
+    x: Math.random() * fx.width, y: Math.random() * fx.height, r: 0.8 + Math.random() * 2.4,
+    vx: (Math.random() - 0.5) * 0.25, vy: -0.08 - Math.random() * 0.3, c: Math.random() < 0.5 ? 0 : 1, a: 0.15 + Math.random() * 0.4
+  }));
+}
+function burst(x, y) {
+  if (calm) return;
+  for (let i = 0; i < 46; i++) {
+    const ang = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 6;
+    confetti.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 3, life: 1, c: i % 2, s: 3 + Math.random() * 4 });
+  }
+}
+function tickFx() {
+  fctx.clearRect(0, 0, fx.width, fx.height);
+  for (const o of orbs) {
+    o.x += o.vx; o.y += o.vy;
+    if (o.y < -5) { o.y = fx.height + 5; o.x = Math.random() * fx.width; }
+    fctx.globalAlpha = o.a; fctx.fillStyle = palette[o.c];
+    fctx.beginPath(); fctx.arc(o.x, o.y, o.r, 0, 7); fctx.fill();
+  }
+  confetti = confetti.filter(p => p.life > 0);
+  for (const p of confetti) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.life -= 0.018;
+    fctx.globalAlpha = Math.max(p.life, 0); fctx.fillStyle = palette[p.c];
+    fctx.fillRect(p.x, p.y, p.s, p.s);
+  }
+  fctx.globalAlpha = 1;
+  requestAnimationFrame(tickFx);
+}
+addEventListener('resize', () => { sizeFx(); drawGraph(); });
+sizeFx();
+if (!calm) requestAnimationFrame(tickFx);
+
+/* ───────── Tabs ───────── */
+let activeTab = 'sci';
+function showTab(name) {
+  if (!$('#tab-' + name)) name = 'sci';
+  activeTab = name;
+  $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  $$('section').forEach(s => s.hidden = s.id !== 'tab-' + name);
+  store.set('tab', name);
+  if (name === 'graph') drawGraph();
+}
+$$('#tabs button').forEach(b => b.onclick = () => { showTab(b.dataset.tab); blip(440); });
+
+/* ───────── Scientific ───────── */
+const exprEl = $('#expr'), prevEl = $('#prev'), liveEl = $('#live');
+let deg = store.get('deg', true), ans = 0, memory = store.get('mem', 0), justSolved = false;
+let past = store.get('history', []);
+
+const FN_KEYS = [
+  ['DEG', 'mode'], ['sin', 'sin('], ['cos', 'cos('], ['tan', 'tan('], ['π', 'π'], ['e', 'e'],
+  ['x²', '^2'], ['asin', 'asin('], ['acos', 'acos('], ['atan', 'atan('], ['φ', 'φ'], ['ans', 'ans'],
+  ['xʸ', '^'], ['√', 'sqrt('], ['∛', 'cbrt('], ['ln', 'ln('], ['log', 'log('], ['1/x', 'inv'],
+  ['n!', '!'], ['|x|', 'abs('], ['eˣ', 'e^('], ['10ˣ', '10^('], ['(', '('], [')', ')'],
+  ['MC', 'mc'], ['MR', 'mr'], ['M+', 'm+'], ['M−', 'm-'], ['rand', 'rand()'], [',', ',']
+];
+const NUM_KEYS = [
+  ['7'], ['8'], ['9'], ['÷', '÷', 'op'], ['⌫', 'back', 'warn'],
+  ['4'], ['5'], ['6'], ['×', '×', 'op'], ['AC', 'clear', 'warn'],
+  ['1'], ['2'], ['3'], ['−', '−', 'op'], ['%', '%', 'op'],
+  ['0'], ['.'], ['EXP', 'E'], ['+', '+', 'op'], ['=', 'solve', 'eq']
+];
+const ACTIONS = {
+  mode() { deg = !deg; store.set('deg', deg); renderBadges(); onExprChange(); },
+  inv() {
+    const v = exprEl.value.trim();
+    if (v) { exprEl.value = `1/(${v})`; justSolved = false; onExprChange(); } else insert('1/(');
+  },
+  mc() { memory = 0; saveMem(); },
+  mr() { if (memory) insert(fmt(memory)); },
+  'm+'() { const v = currentValue(); if (v != null) { memory += v; saveMem(); } },
+  'm-'() { const v = currentValue(); if (v != null) { memory -= v; saveMem(); } },
+  back() {
+    justSolved = false;
+    const s = exprEl.selectionStart, e = exprEl.selectionEnd;
+    if (s !== e) exprEl.setRangeText('', s, e, 'end'); else if (s > 0) exprEl.setRangeText('', s - 1, s, 'end');
+    onExprChange();
+  },
+  clear() { exprEl.value = ''; prevEl.textContent = ''; prevEl.classList.remove('err'); justSolved = false; onExprChange(); },
+  solve
+};
+function buildKeys(target, defs) {
+  for (const [label, action = label, cls = ''] of defs) {
+    const b = el('button', { className: 'key ' + cls, textContent: label, type: 'button' });
+    if (action === 'mode') b.id = 'modeKey';
+    b.onmousedown = e => e.preventDefault(); // keep the caret in the expression box
+    b.onclick = () => { blip(cls === 'eq' ? 780 : cls ? 600 : 500); ACTIONS[action] ? ACTIONS[action]() : insert(action); };
+    target.append(b);
+  }
+}
+buildKeys($('#fnKeys'), FN_KEYS);
+buildKeys($('#numKeys'), NUM_KEYS);
+
+function saveMem() { store.set('mem', memory); renderBadges(); }
+function renderBadges() {
+  $('#modeKey').textContent = deg ? 'DEG' : 'RAD';
+  $('#modeBadge').replaceChildren(el('b', { textContent: deg ? 'DEG' : 'RAD' }));
+  $('#memBadge').textContent = memory ? 'M = ' + fmt(memory) : '';
+}
+function currentValue() {
+  try { const v = compile(exprEl.value)({ deg, ans }); return Number.isNaN(v) ? null : v; } catch { return null; }
+}
+// After "=", an operator continues from the answer and anything else starts afresh.
+function beginInput(text) {
+  if (!justSolved) return;
+  justSolved = false;
+  if (!/^[+\-−×÷*\/^%!E²³]/.test(text)) exprEl.value = '';
+  else if (/^-|E/.test(exprEl.value) && !text.startsWith('E')) exprEl.value = `(${exprEl.value})`;
+}
+function insert(text) {
+  beginInput(text);
+  const end = exprEl.value.length;
+  const s = document.activeElement === exprEl ? exprEl.selectionStart : end;
+  const e = document.activeElement === exprEl ? exprEl.selectionEnd : end;
+  exprEl.setRangeText(text, s, e, 'end');
+  onExprChange();
+}
+function onExprChange() {
+  const v = exprEl.value.trim() && !justSolved ? currentValue() : null;
+  liveEl.textContent = v == null ? '' : '= ' + fmt(v);
+}
+function solve() {
+  const src = exprEl.value.trim();
+  if (!src) return;
+  try {
+    const v = compile(src)({ deg, ans });
+    if (Number.isNaN(v)) throw new Error('Undefined result');
+    ans = v;
+    const out = fmt(v);
+    prevEl.textContent = src + ' =';
+    prevEl.classList.remove('err');
+    exprEl.value = out;
+    justSolved = true;
+    liveEl.textContent = '';
+    if (!past.length || past[0].e !== src) past.unshift({ e: src, r: out });
+    past = past.slice(0, 60);
+    store.set('history', past);
+    renderHistory();
+    renderInsights(v);
+    const box = $('#display').getBoundingClientRect();
+    burst(box.right - 60, box.top + box.height / 2);
+  } catch (err) {
+    prevEl.textContent = err.message;
+    prevEl.classList.add('err');
+    const d = $('#display');
+    d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+    blip(180);
+  }
+}
+function renderHistory() {
+  const list = $('#hist');
+  if (!past.length) return list.replaceChildren(el('li', { className: 'empty', textContent: 'Nothing yet.' }));
+  list.replaceChildren(...past.map(h => {
+    const b = el('button', { type: 'button' }, el('small', { textContent: h.e }), '= ' + h.r);
+    b.onclick = () => { exprEl.value = h.e; justSolved = false; prevEl.textContent = ''; onExprChange(); exprEl.focus(); };
+    return el('li', {}, b);
+  }));
+}
+$('#histClear').onclick = () => { past = []; store.set('history', past); renderHistory(); };
+
+exprEl.addEventListener('beforeinput', e => {
+  if (e.inputType === 'insertText' && e.data) beginInput(e.data); else justSolved = false;
+});
+exprEl.addEventListener('input', onExprChange);
+exprEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); solve(); }
+  else if (e.key === 'Escape') ACTIONS.clear();
+});
+document.addEventListener('keydown', e => {
+  if (activeTab !== 'sci' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target.tagName)) return;
+  if (e.key === 'Enter' || e.key === '=') solve();
+  else if (e.key === 'Backspace') ACTIONS.back();
+  else if (e.key === 'Escape') ACTIONS.clear();
+  else if (e.key.length === 1 && e.key !== ' ') insert(e.key);
+  else return;
+  e.preventDefault();
+});
+
+/* Number insights */
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup = n => String(n).replace(/\d/g, d => SUP[d]);
+function factorize(n) {
+  const f = [];
+  for (let p = 2; p * p <= n; p += p === 2 ? 1 : 2) {
+    let c = 0;
+    while (n % p === 0) { n /= p; c++; }
+    if (c) f.push([p, c]);
+  }
+  if (n > 1) f.push([n, 1]);
+  return f;
+}
+function words(n) {
+  if (n === 0) return 'zero';
+  const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen',
+    'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  const scale = ['', ' thousand', ' million', ' billion', ' trillion'];
+  const chunk = k => {
+    let s = '';
+    if (k >= 100) { s = ones[Math.floor(k / 100)] + ' hundred'; k %= 100; if (k) s += ' '; }
+    if (k >= 20) s += tens[Math.floor(k / 10)] + (k % 10 ? '-' + ones[k % 10] : ''); else s += ones[k];
+    return s;
+  };
+  const parts = [];
+  for (let a = Math.abs(n), i = 0; a > 0; a = Math.floor(a / 1000), i++) if (a % 1000) parts.unshift(chunk(a % 1000) + scale[i]);
+  return (n < 0 ? 'negative ' : '') + parts.join(' ');
+}
+function roman(n) {
+  const map = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let s = '';
+  for (const [v, r] of map) while (n >= v) { s += r; n -= v; }
+  return s;
+}
+function toFraction(x) {
+  const a = Math.abs(x);
+  let h1 = 1, h0 = 0, k1 = 0, k0 = 1, b = a;
+  for (let i = 0; i < 24; i++) {
+    const q = Math.floor(b);
+    [h1, h0] = [q * h1 + h0, h1];
+    [k1, k0] = [q * k1 + k0, k1];
+    if (k1 > 100000) return null;
+    if (Math.abs(a - h1 / k1) < 1e-12 * Math.max(1, a)) return (x < 0 ? '−' : '') + h1 + '/' + k1;
+    b = 1 / (b - q);
+    if (!isFinite(b)) return null;
+  }
+  return null;
+}
+const isSquare = n => n >= 0 && Number.isInteger(Math.sqrt(n));
+const FAMOUS = {
+  42: 'The answer to life, the universe and everything.', 1729: 'The Hardy–Ramanujan taxicab number: 1³+12³ = 9³+10³.',
+  6174: "Kaprekar's constant.", 73: 'The 21st prime; its mirror 37 is the 12th.', 0: 'Neither positive nor negative.',
+  1: 'The multiplicative identity.', 7: 'The most popular "random" number people pick.', 12: 'A dozen: divisible by 1, 2, 3, 4 and 6.',
+  13: 'Unlucky for some.', 28: 'A perfect number: 1+2+4+7+14.', 496: 'A perfect number.', 365: 'Days in a common year: 10²+11²+12².',
+  1024: 'A kibi: 2¹⁰.', 65536: '2¹⁶, the number of values in two bytes.'
+};
+function insightsFor(v) {
+  const out = [];
+  if (!isFinite(v)) return [['Value', 'Beyond what a double can hold']];
+  const a = Math.abs(v);
+  if (Number.isInteger(v) && a < 1e15) {
+    if (FAMOUS[v]) out.push(['Fun fact', FAMOUS[v]]);
+    out.push(['In words', words(v)]);
+    const tags = [v % 2 ? 'odd' : 'even'];
+    if (a >= 2 && a <= 1e12) {
+      const f = factorize(a);
+      const prime = f.length === 1 && f[0][1] === 1;
+      if (prime) tags.unshift('prime');
+      else out.push(['Prime factors', f.map(([p, c]) => p + (c > 1 ? sup(c) : '')).join(' × ')]);
+      out.push(['Divisors', String(f.reduce((n, [, c]) => n * (c + 1), 1))]);
+    }
+    if (v > 1 && isSquare(v)) tags.push('perfect square');
+    if (v > 1 && Number.isInteger(Math.cbrt(v))) tags.push('perfect cube');
+    if (v > 0 && v < 1e7 && (isSquare(5 * v * v + 4) || isSquare(5 * v * v - 4))) tags.push('Fibonacci');
+    if (v > 0 && v < 1e12 && isSquare(8 * v + 1)) tags.push('triangular');
+    if (v > 2 && Number.isInteger(Math.log2(v))) tags.push('power of two');
+    if (v > 10 && String(v) === [...String(v)].reverse().join('')) tags.push('palindrome');
+    out.push(['Kind', tags.join(', ')]);
+    if (v >= 0 && v <= Number.MAX_SAFE_INTEGER) {
+      out.push(['Binary', v.toString(2)], ['Hex', '0x' + v.toString(16).toUpperCase()]);
+      if (v >= 1 && v <= 3999) out.push(['Roman', roman(v)]);
+    }
+    if (a >= 1e6) out.push(['Scientific', v.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', ' × 10^').replace('e', ' × 10^')]);
+  } else {
+    const frac = toFraction(v);
+    if (frac) out.push(['As a fraction', frac]);
+    for (let d = 1; d <= 12; d++) {
+      const k = v / Math.PI * d, r = Math.round(k);
+      if (r && Math.abs(r) <= 100 && Math.abs(k - r) < 1e-9) {
+        out.push(['Exactly', (r === 1 ? '' : r === -1 ? '−' : r) + 'π' + (d > 1 ? '/' + d : '')]);
+        break;
+      }
+    }
+    const sq = Math.round(v * v);
+    if (!frac && sq <= 100000 && Math.abs(v * v - sq) < 1e-9) out.push(['Exactly', (v < 0 ? '−' : '') + '√' + sq]);
+    out.push(['Rounded', String(Math.round(v))], ['Floor / ceil', Math.floor(v) + ' / ' + Math.ceil(v)]);
+    out.push(['Scientific', v.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', ' × 10^').replace('e', ' × 10^')]);
+    if (v) out.push(['Reciprocal', fmt(1 / v)]);
+    if (v > 0 && v < 1) out.push(['As a percentage', fmt(v * 100) + '%']);
+  }
+  return out;
+}
+function renderInsights(v) {
+  $('#insights').replaceChildren(...insightsFor(v).map(([k, val]) => el('div', {}, el('span', { textContent: k }), el('span', { textContent: val }))));
+}
+
+/* ───────── Graph ───────── */
+const gc = $('#graph'), gctx = gc.getContext('2d');
+const GCOLORS = ['#f472b6', '#22d3ee', '#f59e0b'];
+const HOME = { cx: 0, cy: 0, s: 48 };
+let view = { ...HOME }, hoverPx = null, lastFn = 0;
+let fnSrc = store.get('fns', ['sin(x)', 'x^2/4 - 2', '']);
+let fns = [null, null, null];
+const PRESETS = ['x sin(x)', 'tan(x)', 'sqrt(16 - x^2)', 'exp(-x^2/4) cos(4x)', 'floor(x)', 'abs(x)^(2/3)', '1/x', 'sin(x)/x', 'x^3 - 3x', 'ln(abs(x))'];
+
+fnSrc.forEach((src, i) => {
+  const dot = el('i'); dot.style.background = GCOLORS[i];
+  const inp = el('input', { type: 'text', value: src, spellcheck: false, placeholder: 'e.g. cos(2x)' });
+  inp.setAttribute('aria-label', 'Function ' + (i + 1));
+  inp.oninput = () => { fnSrc[i] = inp.value; store.set('fns', fnSrc); compileFn(i, inp); drawGraph(); };
+  inp.onfocus = () => lastFn = i;
+  $('#fnRows').append(el('div', { className: 'fnrow' }, dot, el('span', { textContent: 'y =' }), inp));
+  compileFn(i, inp);
+});
+function compileFn(i, inp) {
+  fns[i] = null;
+  inp.classList.remove('bad'); inp.title = '';
+  if (!inp.value.trim()) return;
+  try { fns[i] = compile(inp.value, ['x']); fns[i]({ x: 1, deg: false, ans }); }
+  catch (err) { fns[i] = null; inp.classList.add('bad'); inp.title = err.message; }
+}
+for (const p of PRESETS) {
+  const c = el('button', { className: 'chip', textContent: p, type: 'button' });
+  c.onclick = () => { const inp = $$('#fnRows input')[lastFn]; inp.value = p; inp.oninput(); };
+  $('#presets').append(c);
+}
+function niceStep(v) {
+  const p = 10 ** Math.floor(Math.log10(v)), m = v / p;
+  return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+}
+const evalFn = (f, x) => { try { return f({ x, deg: false, ans }); } catch { return NaN; } };
+function drawGraph() {
+  const box = gc.getBoundingClientRect();
+  if (!box.width) return;
+  const dpr = devicePixelRatio || 1, W = box.width, H = box.height;
+  if (gc.width !== Math.round(W * dpr) || gc.height !== Math.round(H * dpr)) { gc.width = Math.round(W * dpr); gc.height = Math.round(H * dpr); }
+  const g = gctx, cs = getComputedStyle(document.documentElement);
+  const line = cs.getPropertyValue('--line'), muted = cs.getPropertyValue('--muted');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+  const X = x => W / 2 + (x - view.cx) * view.s, Y = y => H / 2 - (y - view.cy) * view.s;
+  const step = niceStep(70 / view.s), label = v => String(parseFloat(v.toPrecision(6)));
+  const x0 = view.cx - W / 2 / view.s, x1 = view.cx + W / 2 / view.s, y0 = view.cy - H / 2 / view.s, y1 = view.cy + H / 2 / view.s;
+  g.font = '11px ui-monospace, monospace'; g.fillStyle = muted; g.lineWidth = 1; g.strokeStyle = line;
+  const axisY = Math.min(Math.max(Y(0), 0), H - 16), axisX = Math.min(Math.max(X(0), 0), W - 30);
+  for (let k = Math.ceil(x0 / step); k * step <= x1; k++) {
+    const px = Math.round(X(k * step)) + 0.5;
+    g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+    if (k) g.fillText(label(k * step), px + 3, axisY + 12);
+  }
+  for (let k = Math.ceil(y0 / step); k * step <= y1; k++) {
+    const py = Math.round(Y(k * step)) + 0.5;
+    g.beginPath(); g.moveTo(0, py); g.lineTo(W, py); g.stroke();
+    if (k) g.fillText(label(k * step), axisX + 4, py - 3);
+  }
+  g.strokeStyle = muted; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.moveTo(X(0), 0); g.lineTo(X(0), H); g.stroke();
+
+  fns.forEach((f, idx) => {
+    if (!f) return;
+    g.strokeStyle = GCOLORS[idx]; g.lineWidth = 2.2; g.lineJoin = 'round';
+    g.beginPath();
+    let pen = false, last = 0;
+    for (let px = 0; px <= W; px += 0.5) {
+      const y = evalFn(f, view.cx + (px - W / 2) / view.s);
+      if (!isFinite(y)) { pen = false; continue; }
+      const py = Math.max(-1e4, Math.min(1e4, Y(y)));
+      // A jump taller than the canvas between neighbouring samples is an asymptote, not a line.
+      if (pen && Math.abs(py - last) < H) g.lineTo(px, py); else g.moveTo(px, py);
+      pen = true; last = py;
+    }
+    g.stroke();
+  });
+
+  if (hoverPx != null) {
+    const x = view.cx + (hoverPx - W / 2) / view.s;
+    g.strokeStyle = muted; g.lineWidth = 1; g.setLineDash([4, 4]);
+    g.beginPath(); g.moveTo(hoverPx, 0); g.lineTo(hoverPx, H); g.stroke(); g.setLineDash([]);
+    const parts = ['x = ' + label(x)];
+    fns.forEach((f, idx) => {
+      if (!f) return;
+      const y = evalFn(f, x);
+      parts.push(`y${'₁₂₃'[idx]} = ${isFinite(y) ? label(y) : '—'}`);
+      if (!isFinite(y)) return;
+      g.fillStyle = GCOLORS[idx]; g.beginPath(); g.arc(hoverPx, Y(y), 4.5, 0, 7); g.fill();
+    });
+    $('#gread').textContent = parts.join('   ');
+  }
+}
+function zoomAt(factor, px, py) {
+  const box = gc.getBoundingClientRect(), W = box.width, H = box.height;
+  const s = Math.min(1e6, Math.max(1e-3, view.s * factor));
+  const wx = view.cx + (px - W / 2) / view.s, wy = view.cy - (py - H / 2) / view.s;
+  view.cx = wx - (px - W / 2) / s; view.cy = wy + (py - H / 2) / s; view.s = s;
+  drawGraph();
+}
+const pointers = new Map();
+let pinch = 0;
+gc.addEventListener('pointerdown', e => { gc.setPointerCapture(e.pointerId); pointers.set(e.pointerId, e); pinch = 0; });
+gc.addEventListener('pointermove', e => {
+  const box = gc.getBoundingClientRect(), old = pointers.get(e.pointerId);
+  hoverPx = e.clientX - box.left;
+  if (old) {
+    pointers.set(e.pointerId, e);
+    if (pointers.size === 1) { view.cx -= (e.clientX - old.clientX) / view.s; view.cy += (e.clientY - old.clientY) / view.s; }
+    else if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      const was = pinch;
+      pinch = dist;
+      if (was) return zoomAt(dist / was, (a.clientX + b.clientX) / 2 - box.left, (a.clientY + b.clientY) / 2 - box.top);
+    }
+  }
+  drawGraph();
+});
+for (const type of ['pointerup', 'pointercancel']) gc.addEventListener(type, e => { pointers.delete(e.pointerId); pinch = 0; });
+gc.addEventListener('pointerleave', () => { hoverPx = null; $('#gread').textContent = 'drag to pan · scroll to zoom'; drawGraph(); });
+gc.addEventListener('wheel', e => {
+  e.preventDefault();
+  const box = gc.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - box.left, e.clientY - box.top);
+}, { passive: false });
+$$('.gzoom button').forEach(b => b.onclick = () => {
+  const z = +b.dataset.z, box = gc.getBoundingClientRect();
+  if (!z) { view = { ...HOME }; drawGraph(); } else zoomAt(z, box.width / 2, box.height / 2);
+});
+
+/* ───────── Converter ───────── */
+const UNITS = {
+  Length: { m: 1, km: 1000, cm: 0.01, mm: 0.001, 'µm': 1e-6, mi: 1609.344, yd: 0.9144, ft: 0.3048, in: 0.0254, 'nautical mi': 1852, 'light-year': 9.4607304725808e15 },
+  Mass: { kg: 1, g: 0.001, mg: 1e-6, tonne: 1000, lb: 0.45359237, oz: 0.028349523125, stone: 6.35029318 },
+  Temperature: { '°C': 1, '°F': 1, K: 1 },
+  Speed: { 'm/s': 1, 'km/h': 1 / 3.6, mph: 0.44704, knot: 1852 / 3600, 'ft/s': 0.3048, 'Mach (sea level)': 340.29, 'speed of light': 299792458 },
+  Area: { 'm²': 1, 'km²': 1e6, 'cm²': 1e-4, hectare: 1e4, acre: 4046.8564224, 'ft²': 0.09290304, 'in²': 0.00064516, 'mi²': 2589988.110336 },
+  Volume: { L: 1, mL: 0.001, 'm³': 1000, 'US gal': 3.785411784, 'US quart': 0.946352946, 'US pint': 0.473176473, 'US cup': 0.2365882365, 'US fl oz': 0.0295735295625, tbsp: 0.01478676478125, tsp: 0.00492892159375, 'UK gal': 4.54609 },
+  Time: { s: 1, ms: 0.001, min: 60, h: 3600, day: 86400, week: 604800, 'month (avg)': 2629800, 'year (365.25 d)': 31557600 },
+  Data: { B: 1, bit: 0.125, kB: 1e3, MB: 1e6, GB: 1e9, TB: 1e12, KiB: 1024, MiB: 1048576, GiB: 1073741824, TiB: 1099511627776 },
+  Energy: { J: 1, kJ: 1000, cal: 4.184, kcal: 4184, Wh: 3600, kWh: 3.6e6, eV: 1.602176634e-19, BTU: 1055.05585262 },
+  Pressure: { Pa: 1, kPa: 1000, bar: 1e5, atm: 101325, psi: 6894.757293168, mmHg: 133.322387415 },
+  Angle: { rad: 1, deg: Math.PI / 180, grad: Math.PI / 200, turn: 2 * Math.PI }
+};
+let cat = 'Length';
+function convert(v, from, to) {
+  if (cat === 'Temperature') {
+    const k = from === '°C' ? v + 273.15 : from === '°F' ? (v - 32) * 5 / 9 + 273.15 : v;
+    return to === '°C' ? k - 273.15 : to === '°F' ? (k - 273.15) * 9 / 5 + 32 : k;
+  }
+  return v * UNITS[cat][from] / UNITS[cat][to];
+}
+const readValue = inp => { try { const v = compile(inp.value)({ deg, ans }); return isFinite(v) ? v : null; } catch { return null; } };
+function setCat(name) {
+  cat = name;
+  $$('#cats .chip').forEach(c => c.setAttribute('aria-pressed', c.textContent === name));
+  const keys = Object.keys(UNITS[name]);
+  for (const sel of [$('#cuA'), $('#cuB')]) sel.replaceChildren(...keys.map(k => el('option', { textContent: k })));
+  $('#cuB').value = keys[1];
+  runConv();
+}
+function runConv(fromB) {
+  const [src, dst, su, du] = fromB ? [$('#cvB'), $('#cvA'), $('#cuB'), $('#cuA')] : [$('#cvA'), $('#cvB'), $('#cuA'), $('#cuB')];
+  const v = readValue(src);
+  src.classList.toggle('bad', v == null && src.value.trim() !== '');
+  dst.classList.remove('bad');
+  dst.value = v == null ? '' : fmt(convert(v, su.value, du.value));
+  const base = readValue($('#cvA')), from = $('#cuA').value;
+  $('#utitle').textContent = base == null ? 'In every unit' : `${fmt(base)} ${from} in every unit`;
+  $('#utable').replaceChildren(...Object.keys(UNITS[cat]).map(u => {
+    const b = el('button', { type: 'button' }, el('span', { textContent: u }), el('span', { textContent: base == null ? '—' : fmt(convert(base, from, u)) }));
+    b.onclick = () => { $('#cuB').value = u; runConv(); };
+    return b;
+  }));
+}
+for (const name of Object.keys(UNITS)) {
+  const c = el('button', { className: 'chip', textContent: name, type: 'button' });
+  c.onclick = () => setCat(name);
+  $('#cats').append(c);
+}
+$('#cvA').oninput = $('#cuA').onchange = $('#cuB').onchange = () => runConv();
+$('#cvB').oninput = () => runConv(true);
+$('#cswap').onclick = () => {
+  const a = $('#cuA').value;
+  $('#cuA').value = $('#cuB').value; $('#cuB').value = a;
+  runConv();
+};
+
+/* ───────── Programmer ───────── */
+let pv = store.get('prog', 0xCAFE) >>> 0;
+const PFIELDS = [['#pHex', 16, /^[0-9a-f]+$/i], ['#pDec', 10, /^\d+$/], ['#pOct', 8, /^[0-7]+$/], ['#pBin', 2, /^[01]+$/]];
+const POPS = {
+  NOT: v => ~v, NEG: v => -v, '<<': v => v << 1, '>>': v => v >>> 1,
+  ROL: v => (v << 1) | (v >>> 31), ROR: v => (v >>> 1) | (v << 31),
+  'SWAP BYTES': v => ((v & 0xFF) << 24) | ((v & 0xFF00) << 8) | ((v >>> 8) & 0xFF00) | (v >>> 24),
+  '+1': v => v + 1, '−1': v => v - 1, RANDOM: () => Math.random() * 2 ** 32, CLEAR: () => 0
+};
+function setProg(v, skip) {
+  pv = v >>> 0;
+  store.set('prog', pv);
+  for (const [id, base] of PFIELDS) {
+    const f = $(id);
+    if (f === skip) continue;
+    f.value = pv.toString(base).toUpperCase();
+    f.classList.remove('bad');
+  }
+  $$('#bits .bit').forEach(b => {
+    const on = (pv >>> +b.dataset.i) & 1;
+    b.textContent = on; b.classList.toggle('on', !!on);
+  });
+  const hex6 = '#' + (pv & 0xFFFFFF).toString(16).padStart(6, '0');
+  const sw = el('span', { className: 'swatch' }); sw.style.background = hex6;
+  const low = pv & 0xFF;
+  rows($('#pInfo'), [
+    ['Unsigned', pv.toLocaleString()],
+    ['Signed (two\'s complement)', (pv | 0).toLocaleString()],
+    ['Bits set', String(pv.toString(2).replace(/0/g, '').length)],
+    ['Bytes', (pv.toString(16).padStart(8, '0').match(/../g) || []).join(' ').toUpperCase()],
+    ['IPv4 address', [24, 16, 8, 0].map(s => (pv >>> s) & 255).join('.')],
+    ['Low byte as ASCII', low >= 32 && low < 127 ? `'${String.fromCharCode(low)}'` : 'not printable'],
+    ['As a colour', el('span', {}, sw, hex6.toUpperCase())],
+    ['As a float32', String(new Float32Array(new Uint32Array([pv]).buffer)[0])]
+  ]);
+}
+for (let byte = 3; byte >= 0; byte--) {
+  const group = el('div', { className: 'byte' }, el('small', { textContent: `bits ${byte * 8 + 7}–${byte * 8}` }));
+  for (let i = byte * 8 + 7; i >= byte * 8; i--) {
+    const b = el('button', { className: 'bit', type: 'button' });
+    b.dataset.i = i;
+    b.setAttribute('aria-label', 'bit ' + i);
+    b.onclick = () => { setProg(pv ^ (2 ** i)); blip(400 + i * 12); };
+    group.append(b);
+  }
+  $('#bits').append(group);
+}
+for (const [id, base, re] of PFIELDS) {
+  const f = $(id);
+  f.oninput = () => {
+    const txt = f.value.trim(), v = parseInt(txt, base);
+    const ok = txt === '' || (re.test(txt) && v <= 0xFFFFFFFF);
+    f.classList.toggle('bad', !ok);
+    if (ok) setProg(txt === '' ? 0 : v, f);
+  };
+}
+for (const [name, fn] of Object.entries(POPS)) {
+  const b = el('button', { className: 'chip', textContent: name, type: 'button' });
+  b.onclick = () => setProg(fn(pv));
+  $('#pOps').append(b);
+}
+$('#pApply').onclick = () => {
+  const inp = $('#pB'), b = Number(inp.value.trim() || NaN);
+  inp.classList.toggle('bad', !Number.isInteger(b));
+  if (!Number.isInteger(b)) return;
+  const op = $('#pOp').value;
+  setProg(op === 'AND' ? pv & b : op === 'OR' ? pv | b : op === 'XOR' ? pv ^ b : op === '+' ? pv + b : op === '−' ? pv - b : Math.imul(pv, b));
+};
+
+/* ───────── Finance ───────── */
+function runLoan() {
+  const P = num('#lP'), r = num('#lR') / 1200, n = Math.max(1, Math.round(num('#lY') * 12));
+  const pay = r ? P * r / (1 - Math.pow(1 + r, -n)) : P / n, total = pay * n, interest = total - P;
+  $('#lPay').textContent = money(pay) + ' / mo';
+  const [a, b] = $$('#lSplit i');
+  a.style.width = (total ? P / total * 100 : 100) + '%'; b.style.width = (total ? interest / total * 100 : 0) + '%';
+  rows($('#lInfo'), [['Payments', String(n)], ['Total repaid', money(total)], ['Total interest', money(interest)],
+    ['Interest share', total ? (interest / total * 100).toFixed(1) + '%' : '—']]);
+}
+function runCompound() {
+  const P = num('#cP'), M = num('#cM'), r = num('#cR') / 1200, years = Math.min(60, Math.max(1, Math.round(num('#cY'))));
+  let bal = P, paid = P;
+  const pts = [];
+  for (let y = 1; y <= years; y++) {
+    for (let m = 0; m < 12; m++) { bal = bal * (1 + r) + M; paid += M; }
+    pts.push([bal, paid]);
+  }
+  const top = Math.max(...pts.map(p => Math.max(p[0], p[1])), 1);
+  $('#cOut').textContent = money(bal);
+  $('#cBars').replaceChildren(...pts.map(([b, p], i) => {
+    const growth = el('i'), base = el('i');
+    growth.style.height = Math.max(b - p, 0) / top * 120 + 'px';
+    base.style.height = Math.min(p, Math.max(b, 0)) / top * 120 + 'px';
+    return el('div', { title: `Year ${i + 1}: ${money(b)}` }, growth, base);
+  }));
+  rows($('#cInfo'), [['Paid in', money(paid)], ['Growth', money(bal - paid)], ['Money multiplied', paid ? '×' + (bal / paid).toFixed(2) : '—'],
+    ['Doubling time', r > 0 ? (Math.log(2) / (12 * Math.log(1 + r))).toFixed(1) + ' years' : '—']]);
+}
+function runTip() {
+  const bill = num('#tB'), pct = num('#tPct'), n = Math.max(1, Math.round(num('#tN')));
+  const tip = bill * pct / 100, total = bill + tip;
+  $('#tPctL').textContent = pct + '%';
+  $('#tEach').textContent = money(total / n) + ' each';
+  rows($('#tInfo'), [['Tip', money(tip)], ['Total', money(total)], ['Tip each', money(tip / n)],
+    ['Rounded up each', money(Math.ceil(total / n))]]);
+}
+$$('#tab-fin input').forEach(i => i.addEventListener('input', () => { runLoan(); runCompound(); runTip(); }));
+
+/* ───────── Dates (all arithmetic in UTC so daylight saving never shifts a day) ───────── */
+const DAY = 86400000;
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const parseDate = id => { const m = /^(\d+)-(\d+)-(\d+)$/.exec($(id).value); return m ? new Date(Date.UTC(+m[1], m[2] - 1, +m[3])) : null; };
+const iso = d => d.toISOString().slice(0, 10);
+const nice = d => d.toLocaleDateString(undefined, { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+const plural = (n, w) => `${n.toLocaleString()} ${w}${n === 1 ? '' : 's'}`;
+function today() { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); }
+function ymd(a, b) {
+  let months = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + b.getUTCMonth() - a.getUTCMonth();
+  if (addMonths(a, months) > b) months--;
+  const y = Math.floor(months / 12), m = months % 12, d = Math.round((b - addMonths(a, months)) / DAY);
+  return [y && plural(y, 'year'), m && plural(m, 'month'), (d || (!y && !m)) && plural(d, 'day')].filter(Boolean).join(', ');
+}
+function workdays(a, days) {
+  let n = Math.floor(days / 7) * 5;
+  for (let i = 0, w = a.getUTCDay(); i < days % 7; i++, w = (w + 1) % 7) if (w !== 0 && w !== 6) n++;
+  return n;
+}
+// Month arithmetic clamps to the last day, so 31 Jan + 1 month is 28/29 Feb.
+function addMonths(d, n) {
+  const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, 1));
+  const last = new Date(Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0)).getUTCDate();
+  r.setUTCDate(Math.min(d.getUTCDate(), last));
+  return r;
+}
+function runBetween() {
+  let a = parseDate('#dA'), b = parseDate('#dB');
+  if (!a || !b) { $('#dOut').textContent = '—'; return $('#dInfo').replaceChildren(); }
+  const back = a > b;
+  if (back) [a, b] = [b, a];
+  const days = Math.round((b - a) / DAY);
+  $('#dOut').textContent = plural(days, 'day') + (back ? ' ago' : '');
+  rows($('#dInfo'), [['Calendar', ymd(a, b)], ['Weeks', `${Math.floor(days / 7).toLocaleString()} wk ${days % 7} d`],
+    ['Weekdays (Mon–Fri)', workdays(a, days).toLocaleString()], ['Hours', (days * 24).toLocaleString()],
+    ['Seconds', (days * 86400).toLocaleString()]]);
+}
+function runAdd() {
+  const d = parseDate('#aD'), n = Math.round(num('#aN')), unit = $('#aU').value;
+  if (!d) { $('#aOut').textContent = '—'; return $('#aInfo').replaceChildren(); }
+  const r = unit === 'days' ? new Date(+d + n * DAY) : unit === 'weeks' ? new Date(+d + n * 7 * DAY) : addMonths(d, unit === 'months' ? n : n * 12);
+  if (isNaN(r)) { $('#aOut').textContent = '—'; return $('#aInfo').replaceChildren(); }
+  $('#aOut').textContent = iso(r);
+  const start = new Date(Date.UTC(r.getUTCFullYear(), 0, 1));
+  rows($('#aInfo'), [['Falls on', nice(r)], ['Day of the year', String(Math.round((r - start) / DAY) + 1)],
+    ['Days from start', Math.round((r - d) / DAY).toLocaleString()]]);
+}
+function runBirthday() {
+  const b = parseDate('#bD'), now = today();
+  if (!b || b > now) { $('#bOut').textContent = '—'; return $('#bInfo').replaceChildren(); }
+  const days = Math.round((now - b) / DAY);
+  const years = now.getUTCFullYear() - b.getUTCFullYear();
+  let next = addMonths(b, years * 12);
+  if (next < now) next = addMonths(b, (years + 1) * 12);
+  const wait = Math.round((next - now) / DAY);
+  $('#bOut').textContent = ymd(b, now);
+  rows($('#bInfo'), [['Born on a', WEEKDAYS[b.getUTCDay()]], ['Days alive', days.toLocaleString()],
+    ['Hours alive', (days * 24).toLocaleString()], ['Next birthday', wait ? `in ${plural(wait, 'day')} (${WEEKDAYS[next.getUTCDay()]})` : 'today 🎉'],
+    ['10,000th day', days >= 10000 ? 'passed on ' + iso(new Date(+b + 10000 * DAY)) : iso(new Date(+b + 10000 * DAY))]]);
+}
+$('#dA').value = $('#aD').value = iso(today());
+$('#dB').value = (today().getUTCFullYear() + 1) + '-01-01';
+$$('#tab-date input, #tab-date select').forEach(i => i.addEventListener('input', () => { runBetween(); runAdd(); runBirthday(); }));
+
+/* ───────── Boot ───────── */
+renderBadges(); renderHistory();
+setCat('Length'); setProg(pv);
+runLoan(); runCompound(); runTip();
+runBetween(); runAdd(); runBirthday();
+setTheme(store.get('theme', 'nebula'));
+showTab(store.get('tab', 'sci'));
+</script>
+</body>
+</html>
